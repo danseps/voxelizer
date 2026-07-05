@@ -55,9 +55,7 @@ target_link_libraries(voxelizer PRIVATE
     GL 
     Threads::Threads)
 
-target_include_directories(voxelizer PRIVATE 
-    #extern/glm
-)
+# target_include_directories(voxelizer PRIVATE extern/glm)
 
 # ---------------------------------------------------
 # Unit tests executable
@@ -73,9 +71,7 @@ target_link_libraries(unit_tests PRIVATE
     Threads::Threads 
 )
 
-target_include_directories(unit_tests PRIVATE 
-    # extern/fastnoiselite,... hlavicky libraries proste
-)
+# target_include_directories(unit_tests PRIVATE extern/fastnoiselite,... hlavicky libraries proste)
 
 # Discover and register individual unit tests
 include(GoogleTest)
