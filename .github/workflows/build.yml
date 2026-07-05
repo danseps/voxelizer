@@ -1,0 +1,23 @@
+name: voxelizer CI
+
+on: [push, pull_request]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Install System Dependencies
+      run: sudo apt-get update && sudo apt-get install -y cmake g++ libglfw3-dev libgl1-mesa-dev xorg-dev
+
+    - name: Configure CMake
+      run: cmake -B build
+
+    - name: Build Project & Tests
+      run: cmake --build build -j 4 # Use 4 parallel jobs for faster build
+
+    - name: Run GTests
+      run: cd build && ctest --output-on-failure # Detailed output for test failures
