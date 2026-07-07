@@ -24,6 +24,10 @@ set(CORE_SOURCES
     src/chunkMesher.hpp
 )
 
+set(EXTERNAL_SOURCES
+    extern/glad/src/glad.c
+)
+
 # ---------------------------------------------------
 # Gtest setup
 # ---------------------------------------------------
@@ -48,6 +52,7 @@ find_package(OpenGL REQUIRED)
 add_executable(voxelizer 
     src/main.cpp
     ${CORE_SOURCES}
+    ${EXTERNAL_SOURCES}
 )
 
 target_compile_options(voxelizer PRIVATE ${CMAKE_CXX_FLAGS} ${STRICS_WARNINGS} ${SANITIZE_FLAGS})
