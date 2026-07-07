@@ -15,10 +15,13 @@ set(SANITIZE_FLAGS "-fsanitize=address,undefined" "-g" "-fno-omit-frame-pointer"
 
 # source files for the unit tests
 set(TESTSOURCES 
-    tests/test_chunk.cpp)
+    tests/test_chunk.cpp
+    tests/test_chunkMesher.cpp
+    )
 # source files for the core library without the main function
 set(CORE_SOURCES
-    src/chunk.cpp
+    src/chunk.hpp
+    src/chunkMesher.hpp
 )
 
 # ---------------------------------------------------

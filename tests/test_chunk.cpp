@@ -1,3 +1,13 @@
+/**
+ * @file test_chunk.cpp
+ * @author Daniel Šeps (daniel.seps@proton.me)
+ * @brief Chunk test file
+ * @version 0.1
+ * @date 2026-07-07
+ * 
+ * @copyright Copyright (c) 2026
+ * 
+ */
 #include <gtest/gtest.h>
 #include "../src/chunk.hpp"
 

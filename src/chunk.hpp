@@ -59,6 +59,15 @@ inline int getBlockIndex(int x, int y, int z)
     return x + (y * Chunk::SIZE_X) + (z * Chunk::SIZE_X * Chunk::SIZE_Y);
 }
 
+/**
+ * @brief Set the Block object
+ * 
+ * @param chunk 
+ * @param x 
+ * @param y 
+ * @param z 
+ * @param blockType 
+ */
 inline void setBlock(Chunk& chunk, int x, int y, int z, BlockType blockType)
 {
     int index = getBlockIndex(x, y, z);
@@ -67,6 +76,15 @@ inline void setBlock(Chunk& chunk, int x, int y, int z, BlockType blockType)
     }
 }
 
+/**
+ * @brief Get the Block object type
+ * 
+ * @param chunk 
+ * @param x 
+ * @param y 
+ * @param z 
+ * @return BlockType 
+ */
 inline BlockType getBlock(Chunk& chunk, int x, int y, int z)
 {
     int index = getBlockIndex(x, y, z);
