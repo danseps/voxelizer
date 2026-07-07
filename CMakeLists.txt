@@ -24,10 +24,6 @@ set(CORE_SOURCES
     src/chunkMesher.hpp
 )
 
-set(EXTERNAL_SOURCES
-    extern/glad/src/glad.c
-)
-
 # ---------------------------------------------------
 # Gtest setup
 # ---------------------------------------------------
@@ -47,12 +43,19 @@ find_package(glfw3 REQUIRED)
 find_package(OpenGL REQUIRED)
 
 # ---------------------------------------------------
+# 3rd party libraries
+# ---------------------------------------------------
+add_library(glad_lib STATIC extern/glad/src/glad.c)
+target_include_directories(glad_lib PUBLIC 
+    ${CMAKE_SOURCE_DIR}/extern
+)
+
+# ---------------------------------------------------
 # Main application executable
 # ---------------------------------------------------
 add_executable(voxelizer 
-    src/main.cpp
-    ${CORE_SOURCES}
-    ${EXTERNAL_SOURCES}
+    src/main.cpp 
+    ${CORE_SOURCES} 
 )
 
 target_compile_options(voxelizer PRIVATE ${CMAKE_CXX_FLAGS} ${STRICS_WARNINGS} ${SANITIZE_FLAGS})
@@ -61,9 +64,15 @@ target_link_options(voxelizer PRIVATE ${SANITIZE_FLAGS})
 target_link_libraries(voxelizer PRIVATE 
     glfw 
     GL 
-    Threads::Threads)
+    m
+    Threads::Threads 
+    glad_lib 
+    )
 
-# target_include_directories(voxelizer PRIVATE extern/glm)
+target_include_directories(voxelizer PRIVATE 
+    ${CMAKE_SOURCE_DIR}/extern/glm
+    #${CMAKE_SOURCE_DIR}/extern/KHR
+    )
 
 # ---------------------------------------------------
 # Unit tests executable
