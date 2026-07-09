@@ -9,7 +9,7 @@
  * 
  */
 #include <iostream>
-
+#include <cstddef> // for offsetof
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -52,8 +52,14 @@ void glfwInitialize();
  */
 int main ()
 {
-
     glfwInitialize();
+    ChunkMesher::MeshData mesh;
+
+    /** TODO: TEST */
+    Chunk chunk{};
+    setBlock(chunk, 0, 0, 0, BlockType::Stone);
+    mesh = ChunkMesher::generateMesh(chunk);
+    /** TEST END */
 
     // Create a windowed mode window and its OpenGL context
     GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "voxelizer", nullptr, nullptr);
@@ -81,6 +87,35 @@ int main ()
 
     // Callback functions
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    // Enable depth testing
+    glEnable(GL_DEPTH_TEST);
+    // Set the viewport
+    glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+
+    // Vertex data and buffer setup
+    unsigned int VBO, VAO, EBO;
+
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
+
+    // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+
+    glBufferData(GL_ARRAY_BUFFER, sizeof(ChunkMesher::Vertex) * mesh.vertices.size(), mesh.vertices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32_t) * mesh.indices.size(), mesh.indices.data(), GL_STATIC_DRAW);
+
+    // position attributes
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(ChunkMesher::Vertex), (void*)offsetof(ChunkMesher::Vertex, x));
+    glEnableVertexAttribArray(0);
+    // color attributes
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(ChunkMesher::Vertex), (void*)offsetof(ChunkMesher::Vertex, color));
+    glEnableVertexAttribArray(1);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0); // Unbind the VBO
+    glBindVertexArray(0); // Unbind the VAO (bind when rendering)
 
 
     // Main render loop
@@ -90,11 +125,18 @@ int main ()
         processInput(window);
 
         // Rendering commands here
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        shader.use();
+        
+        //TODO: code here
 
 
+
+
+        glBindVertexArray(VAO);
+        glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -102,7 +144,7 @@ int main ()
 
     glfwTerminate();
     return 0;
-}
+} // main
 
 void glfwInitialize()
 {

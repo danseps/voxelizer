@@ -16,6 +16,26 @@
  
  namespace ChunkMesher 
  {
+
+    /**
+     * @brief 
+     * 
+     */
+    struct Vertex
+    {
+        float x, y, z; // Position
+        utils::Color color; // Color
+    };
+
+    /**
+     * @brief 
+     * 
+     */
+    struct MeshData
+    {
+        std::vector<Vertex> vertices; // Vertex data
+        std::vector<uint32_t> indices; // Index data
+    };
      
      /**
       * @brief Push a vertex with position and color into the mesh vector
@@ -26,10 +46,28 @@
       * @param z 
       * @param color
       */
-    inline void pushVertex(std::vector<float>& mesh, float x, float y, float z, const utils::Color& color) {
-         mesh.push_back(x); mesh.push_back(y); mesh.push_back(z);
-         mesh.push_back(color.r); mesh.push_back(color.g); mesh.push_back(color.b);
-         mesh.push_back(color.a);
+    inline void addFace(MeshData& meshData, 
+                        float x0, float y0, float z0,
+                        float x1, float y1, float z1,
+                        float x2, float y2, float z2,
+                        float x3, float y3, float z3,
+                        const utils::Color& color) 
+    {
+            uint32_t offset = static_cast<uint32_t>(meshData.vertices.size());
+
+            meshData.vertices.push_back({x0, y0, z0, color});
+            meshData.vertices.push_back({x1, y1, z1, color});
+            meshData.vertices.push_back({x2, y2, z2, color});
+            meshData.vertices.push_back({x3, y3, z3, color});
+
+            // First triangle
+            meshData.indices.push_back(offset + 0);
+            meshData.indices.push_back(offset + 1);
+            meshData.indices.push_back(offset + 2);
+            // Second triangle
+            meshData.indices.push_back(offset + 2);
+            meshData.indices.push_back(offset + 3);
+            meshData.indices.push_back(offset + 0);
         }
         
     /**
@@ -59,12 +97,14 @@
          * @brief Generate a mesh for the given chunk
          * 
          * @param chunk 
-         * @return std::vector<float> 
+         * @return MeshData 
          */
-        inline std::vector<float> generateMesh(Chunk& chunk)
+        inline MeshData generateMesh(Chunk& chunk)
         {
-        std::vector<float> vertices;
-        vertices.reserve(10000); // TODO: optimalize: Reserve space for the maximum possible number of vertices
+        MeshData meshData;
+        meshData.vertices.reserve(4000); // TODO: optimalize: Reserve space for the maximum possible number of vertices
+        meshData.indices.reserve(6000); // TODO: optimalize: Reserve space for the maximum possible number of indices
+
 
         for (int y = 0; y < Chunk::SIZE_Y; y++)
         {
@@ -85,56 +125,26 @@
                     utils::Color color = getBlockTypeColor(block);
 
                     // 1. PŘEDNÍ STĚNA (+Z)
-                    pushVertex(vertices, x,  y,  pz, color);
-                    pushVertex(vertices, px, y,  pz, color);
-                    pushVertex(vertices, px, py, pz, color);
-                    pushVertex(vertices, px, py, pz, color);
-                    pushVertex(vertices, x,  py, pz, color);
-                    pushVertex(vertices, x,  y,  pz, color);
+                    addFace(meshData, x,  y,  pz, px, y,  pz, px, py, pz, x,  py, pz, color);
 
                     // 2. ZADNÍ STĚNA (-Z)
-                    pushVertex(vertices, px, y,  z, color);
-                    pushVertex(vertices, x,  y,  z, color);
-                    pushVertex(vertices, x,  py, z, color);
-                    pushVertex(vertices, x,  py, z, color);
-                    pushVertex(vertices, px, py, z, color);
-                    pushVertex(vertices, px, y,  z, color);
+                    addFace(meshData, px, y,  z, x,  y,  z, x,  py, z, px, py, z, color);
 
                     // 3. LEVÁ STĚNA (-X)
-                    pushVertex(vertices, x, y,  z,  color);
-                    pushVertex(vertices, x, y,  pz, color);
-                    pushVertex(vertices, x, py, pz, color);
-                    pushVertex(vertices, x, py, pz, color);
-                    pushVertex(vertices, x, py, z,  color);
-                    pushVertex(vertices, x, y,  z,  color);
+                    addFace(meshData, x, y,  z, x, y, pz, x, py, pz, x, py, z, color);
 
                     // 4. PRAVÁ STĚNA (+X)
-                    pushVertex(vertices, px, y,  pz, color);
-                    pushVertex(vertices, px, y,  z,  color);
-                    pushVertex(vertices, px, py, z,  color);
-                    pushVertex(vertices, px, py, z,  color);
-                    pushVertex(vertices, px, py, pz, color);
-                    pushVertex(vertices, px, y,  pz, color);
+                    addFace(meshData, px, y,  pz, px, y,  z, px, py, z, px, py, pz, color);
 
                     // 5. HORNÍ STĚNA (+Y)
-                    pushVertex(vertices, x,  py, pz, color);
-                    pushVertex(vertices, px, py, pz, color);
-                    pushVertex(vertices, px, py, z,  color);
-                    pushVertex(vertices, px, py, z,  color);
-                    pushVertex(vertices, x,  py, z,  color);
-                    pushVertex(vertices, x,  py, pz, color);
+                    addFace(meshData, x,  py, pz, px, py, pz, px, py, z, x, py, z, color);
 
                     // 6. SPODNÍ STĚNA (-Y)
-                    pushVertex(vertices, x,  y, z,  color);
-                    pushVertex(vertices, px, y, z,  color);
-                    pushVertex(vertices, px, y, pz, color);
-                    pushVertex(vertices, px, y, pz, color);
-                    pushVertex(vertices, x,  y, pz, color);
-                    pushVertex(vertices, x,  y, z,  color);
+                    addFace(meshData, x,  y, z, px, y, z, px, y, pz, x,  y, pz, color);
                 }
             }
         }
-        return vertices;
+        return meshData;
     }
 
 
