@@ -16,8 +16,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "shader.hpp"
-#include "chunkMesher.hpp" //TODO:
+#include "shader.hpp" 
+#include "chunkMesher.hpp"
 
 // settings
 constexpr int WINDOW_WIDTH = 1920;
@@ -132,6 +132,8 @@ int main ()
     glfwSetCursorPosCallback(window, mouse_callback);
     // Enable depth testing
     glEnable(GL_DEPTH_TEST);
+    // Face culling
+    glEnable(GL_CULL_FACE);
     // Set the viewport
     glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // Capture the mouse cursor

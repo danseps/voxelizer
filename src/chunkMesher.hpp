@@ -125,22 +125,28 @@
                     utils::Color color = getBlockTypeColor(block);
 
                     // 1. PŘEDNÍ STĚNA (+Z)
-                    addFace(meshData, x,  y,  pz, px, y,  pz, px, py, pz, x,  py, pz, color);
+                    if (getBlock(chunk, x, y, z + 1) == BlockType::Air)
+                        addFace(meshData, x,  y,  pz, px, y,  pz, px, py, pz, x,  py, pz, color);
 
                     // 2. ZADNÍ STĚNA (-Z)
-                    addFace(meshData, px, y,  z, x,  y,  z, x,  py, z, px, py, z, color);
+                    if (getBlock(chunk, x, y, z - 1) == BlockType::Air)
+                        addFace(meshData, px, y,  z, x,  y,  z, x,  py, z, px, py, z, color);
 
                     // 3. LEVÁ STĚNA (-X)
-                    addFace(meshData, x, y,  z, x, y, pz, x, py, pz, x, py, z, color);
+                    if (getBlock(chunk, x - 1, y, z) == BlockType::Air)
+                        addFace(meshData, x, y,  z, x, y, pz, x, py, pz, x, py, z, color);
 
                     // 4. PRAVÁ STĚNA (+X)
-                    addFace(meshData, px, y,  pz, px, y,  z, px, py, z, px, py, pz, color);
+                    if (getBlock(chunk, x + 1, y, z) == BlockType::Air)
+                        addFace(meshData, px, y,  pz, px, y,  z, px, py, z, px, py, pz, color);
 
                     // 5. HORNÍ STĚNA (+Y)
-                    addFace(meshData, x,  py, pz, px, py, pz, px, py, z, x, py, z, color);
+                    if (getBlock(chunk, x, y + 1, z) == BlockType::Air)
+                        addFace(meshData, x,  py, pz, px, py, pz, px, py, z, x,  py, z, color);
 
                     // 6. SPODNÍ STĚNA (-Y)
-                    addFace(meshData, x,  y, z, px, y, z, px, y, pz, x,  y, pz, color);
+                    if (getBlock(chunk, x, y - 1, z) == BlockType::Air)
+                        addFace(meshData, x,  y, z, px, y, z, px, y, pz, x,  y, pz, color);
                 }
             }
         }
