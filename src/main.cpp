@@ -18,6 +18,9 @@
 
 #include "shader.hpp" 
 #include "chunkMesher.hpp"
+#include "perlinNoise.hpp"
+#include "world.hpp"
+#include "worldGenerator.hpp"
 
 // settings
 constexpr int WINDOW_WIDTH = 1920;
@@ -26,7 +29,7 @@ int windowWidth = WINDOW_WIDTH;
 int windowHeight = WINDOW_HEIGHT;
 
 // camera
-glm::vec3 cameraPos   = glm::vec3(0.0f, 0.0f,  3.0f);
+glm::vec3 cameraPos   = glm::vec3(0.0f, 25.0f,  50.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp    = glm::vec3(0.0f, 1.0f,  0.0f);
 
@@ -97,9 +100,10 @@ int main ()
     glm::mat4 projection;
 
     /** TODO: TEST */
-    Chunk chunk{};
-    setBlock(chunk, 0, 0, 0, BlockType::Stone);
-    mesh = ChunkMesher::generateMesh(chunk);
+    World world{};
+    generateWorld(world); // Generate a 3x3 grid of chunks in the world
+    generateWorldMesh(world, mesh);
+    
     /** TEST END */
 
     // Create a windowed mode window and its OpenGL context
@@ -192,7 +196,7 @@ int main ()
 
         glBindVertexArray(VAO);
         // Set polygon mode to wireframe for debugging
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Set polygon mode to wireframe
+        glPolygonMode(GL_FILL, GL_LINE); // Set polygon mode to wireframe
         glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
 
         glfwSwapBuffers(window);
@@ -232,8 +236,8 @@ void mouse_callback(GLFWwindow* /* window */, double xposIn, double yposIn)
 
     if (firstMouse) // initially set to true
     {
-        lastX = 0;
-        lastY = 0;
+        lastX = xpos;
+        lastY = ypos;
         firstMouse = false;
     }
 
@@ -276,7 +280,7 @@ void processInput(GLFWwindow *window)
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
     
-    const float cameraSpeed = 2.5f * deltaTime;
+    const float cameraSpeed = 4.5f * deltaTime;
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         cameraPos += cameraSpeed * cameraFront;
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)

@@ -85,7 +85,7 @@ inline void setBlock(Chunk& chunk, int x, int y, int z, BlockType blockType)
  * @param z 
  * @return BlockType 
  */
-inline BlockType getBlock(Chunk& chunk, int x, int y, int z)
+inline BlockType getBlock(const Chunk& chunk, int x, int y, int z)
 {
     int index = getBlockIndex(x, y, z);
     if (index != -1) {

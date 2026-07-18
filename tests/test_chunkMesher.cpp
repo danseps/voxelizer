@@ -52,8 +52,8 @@ TEST_F(ChunkMesherTest, GenerateMeshMultipleBlocks) {
 
     EXPECT_FALSE(mesh.vertices.empty());
     EXPECT_FALSE(mesh.indices.empty());
-    EXPECT_EQ(mesh.vertices.size(), 2 * 24); // 2 blocks * 6 faces * 4 vertices
-    EXPECT_EQ(mesh.indices.size(), 2 * 36);  // 2 blocks * 6 faces * 2 triangles * 3 indices
+    EXPECT_EQ(mesh.vertices.size(), 4 * 10); // 10 faces * 4 vertices
+    EXPECT_EQ(mesh.indices.size(), 10 * 2 * 3);  // 10 faces * 2 triangles * 3 indices
 }
 
 TEST_F(ChunkMesherTest, GenerateMeshWithAirBlocks) {
@@ -132,3 +132,35 @@ Až zapneme Face Culling, tento test upravíme tak,
 aby očekával menší číslo (o 2 skryté stěny méně),
  čímž získáme neprůstřelný důkaz, že nám optimalizace funguje.
 */
+
+TEST_F(ChunkMesherTest, FaceCullingTest) {
+    setBlock(chunk, 0, 0, 0, BlockType::Dirt);
+    setBlock(chunk, 1, 0, 0, BlockType::Dirt); // This block is adjacent to the first one
+
+    ChunkMesher::MeshData mesh = ChunkMesher::generateMesh(chunk);
+
+    // Each block has 6 faces, but the adjacent face between them should not be generated.
+    // So we expect 10 faces in total (5 for each block).
+    EXPECT_EQ(mesh.vertices.size(), 10 * 4); // 10 faces * 4 vertices
+    EXPECT_EQ(mesh.indices.size(), 10 * 6);  // 10 faces * 2 triangles * 3 indices
+}
+
+TEST_F(ChunkMesherTest, FaceCullingCompletelySurroundedBlock) {
+    // 3x3x3 cube of blocks, the center block is completely surrounded
+    for (int y = 0; y < 3; y++) {
+        for (int z = 0; z < 3; z++) {
+            for (int x = 0; x < 3; x++) {
+                setBlock(chunk, x, y, z, BlockType::Stone);
+            }
+        }
+    }
+
+    auto mesh = ChunkMesher::generateMesh(chunk);
+
+    // Without face culling: 27 blocks * 6 faces = 162 faces (648 vertices)
+    // With face culling:
+    // The large cube has 6 outer faces. Each face consists of 3x3 = 9 small block faces.
+    // Expected result: 6 * 9 = 54 faces.
+    EXPECT_EQ(mesh.vertices.size(), 54 * 4); // 216 vertices
+    EXPECT_EQ(mesh.indices.size(), 54 * 6);  // 324 indices
+}

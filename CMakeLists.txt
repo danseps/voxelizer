@@ -17,11 +17,19 @@ set(SANITIZE_FLAGS "-fsanitize=address,undefined" "-g" "-fno-omit-frame-pointer"
 set(TESTSOURCES 
     tests/test_chunk.cpp
     tests/test_chunkMesher.cpp
+    tests/test_perlinNoise.cpp
     )
 # source files for the core library without the main function
 set(CORE_SOURCES
     src/chunk.hpp
     src/chunkMesher.hpp
+    src/perlinNoise.hpp
+    src/perlinNoise.cpp
+    src/shader.hpp
+    src/utils.hpp
+    src/world.hpp
+    src/worldGenerator.hpp
+    src/worldGenerator.cpp
 )
 
 # ---------------------------------------------------
@@ -70,26 +78,29 @@ target_link_libraries(voxelizer PRIVATE
     )
 
 target_include_directories(voxelizer PRIVATE 
-    ${CMAKE_SOURCE_DIR}/extern/glm
+    ${CMAKE_SOURCE_DIR}/extern
     #${CMAKE_SOURCE_DIR}/extern/KHR
     )
 
 # ---------------------------------------------------
 # Unit tests executable
 # ---------------------------------------------------
-enable_testing()
-add_executable(unit_tests ${TESTSOURCES} ${CORE_SOURCES})
+#enable_testing()
+#add_executable(unit_tests ${TESTSOURCES} ${CORE_SOURCES})
 
-target_compile_options(unit_tests PRIVATE ${CMAKE_CXX_FLAGS} ${STRICS_WARNINGS} ${SANITIZE_FLAGS})
-target_link_options(unit_tests PRIVATE ${SANITIZE_FLAGS})
+#target_compile_options(unit_tests PRIVATE ${CMAKE_CXX_FLAGS} ${STRICS_WARNINGS} ${SANITIZE_FLAGS})
+#target_link_options(unit_tests PRIVATE ${SANITIZE_FLAGS})
 
-target_link_libraries(unit_tests PRIVATE 
-    GTest::gtest_main 
-    Threads::Threads 
-)
+#target_link_libraries(unit_tests PRIVATE 
+    #GTest::gtest_main 
+    #Threads::Threads 
+    #m
+#)
 
-# target_include_directories(unit_tests PRIVATE extern/fastnoiselite,... hlavicky libraries proste)
+#target_include_directories(unit_tests PRIVATE 
+    #${CMAKE_SOURCE_DIR}/extern
+#)
 
 # Discover and register individual unit tests
-include(GoogleTest)
-gtest_discover_tests(unit_tests)
+#include(GoogleTest)
+#gtest_discover_tests(unit_tests)

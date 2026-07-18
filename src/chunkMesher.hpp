@@ -99,13 +99,14 @@
          * @param chunk 
          * @return MeshData 
          */
-        inline MeshData generateMesh(Chunk& chunk)
-        {
-        MeshData meshData;
-        meshData.vertices.reserve(4000); // TODO: optimalize: Reserve space for the maximum possible number of vertices
-        meshData.indices.reserve(6000); // TODO: optimalize: Reserve space for the maximum possible number of indices
+            inline void generateMesh(const Chunk& chunk, int chunkX, int chunkZ, MeshData& meshData)
+    {
+        // Vypočítáme o kolik bloků se tento chunk posune ve světě OpenGL
+        float offsetX = chunkX * Chunk::SIZE_X;
+        float offsetZ = chunkZ * Chunk::SIZE_Z;
 
-
+        // Tady už nerezervujeme paměť, protože to se dělá až venku v Mainu
+        
         for (int y = 0; y < Chunk::SIZE_Y; y++)
         {
             for (int z = 0; z < Chunk::SIZE_Z; z++)
@@ -118,39 +119,44 @@
                         continue;
                     }
 
-                    float px = x + 1.0f;
-                    float py = y + 1.0f;
-                    float pz = z + 1.0f;
+                    // APLIKACE OFFSETU: Tady řekneme OpenGL, ať tuto kostku vykreslí posunutou!
+                    float wx = x + offsetX;
+                    float wy = y; 
+                    float wz = z + offsetZ;
+
+                    float wpx = wx + 1.0f;
+                    float wpy = wy + 1.0f;
+                    float wpz = wz + 1.0f;
 
                     utils::Color color = getBlockTypeColor(block);
 
+                    // A teď už používáme ty posunuté (World) souřadnice (wx, wy, wz)!
                     // 1. PŘEDNÍ STĚNA (+Z)
                     if (getBlock(chunk, x, y, z + 1) == BlockType::Air)
-                        addFace(meshData, x,  y,  pz, px, y,  pz, px, py, pz, x,  py, pz, color);
+                        addFace(meshData, wx, wy, wpz, wpx, wy, wpz, wpx, wpy, wpz, wx, wpy, wpz, color);
 
                     // 2. ZADNÍ STĚNA (-Z)
                     if (getBlock(chunk, x, y, z - 1) == BlockType::Air)
-                        addFace(meshData, px, y,  z, x,  y,  z, x,  py, z, px, py, z, color);
+                        addFace(meshData, wpx, wy, wz, wx, wy, wz, wx, wpy, wz, wpx, wpy, wz, color);
 
                     // 3. LEVÁ STĚNA (-X)
                     if (getBlock(chunk, x - 1, y, z) == BlockType::Air)
-                        addFace(meshData, x, y,  z, x, y, pz, x, py, pz, x, py, z, color);
+                        addFace(meshData, wx, wy, wz, wx, wy, wpz, wx, wpy, wpz, wx, wpy, wz, color);
 
                     // 4. PRAVÁ STĚNA (+X)
                     if (getBlock(chunk, x + 1, y, z) == BlockType::Air)
-                        addFace(meshData, px, y,  pz, px, y,  z, px, py, z, px, py, pz, color);
+                        addFace(meshData, wpx, wy, wpz, wpx, wy, wz, wpx, wpy, wz, wpx, wpy, wpz, color);
 
                     // 5. HORNÍ STĚNA (+Y)
                     if (getBlock(chunk, x, y + 1, z) == BlockType::Air)
-                        addFace(meshData, x,  py, pz, px, py, pz, px, py, z, x,  py, z, color);
+                        addFace(meshData, wx, wpy, wpz, wpx, wpy, wpz, wpx, wpy, wz, wx, wpy, wz, color);
 
                     // 6. SPODNÍ STĚNA (-Y)
                     if (getBlock(chunk, x, y - 1, z) == BlockType::Air)
-                        addFace(meshData, x,  y, z, px, y, z, px, y, pz, x,  y, pz, color);
+                        addFace(meshData, wx, wy, wz, wpx, wy, wz, wpx, wpy, wz, wx, wy, wpz, color);
                 }
             }
         }
-        return meshData;
     }
 
 
