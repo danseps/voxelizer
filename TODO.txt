@@ -1,0 +1,19 @@
+testy
+chunky kolem kamery - radius
+perlin noise na biomy
+kurzor uprostred jak v mc
++ raycasting a interakce
+kamera ne vzhledem ke stredu
+optimalizace - vic bloku u sebe jako jeden velky blok (greedy meshing)
+imgui fps a lehke ovladani
+kolize
+lightning
+frustrum culling
+textury
+chunky jako jednotlive ne jako jeden velky world a kazdy svuj vao vbo (optimalizace změn)
+Objektově orientovaný Mesher: Převést to z "funkce" na třídu Mesh, která drží svůj VAO/VBO.
+
+3D noise or biome-based structure
+right now height is purely a 2D heightmap 
+(no caves, overhangs, or floating terrain). 
+Adding 3D noise is the next real jump in complexity.
