@@ -23,7 +23,7 @@
 void generateChunk(Chunk& chunk, int offsetX, int offsetZ);
 
 /**
- * @brief Generates the entire world with multiple chunks
+ * @brief Generates the entire world with multiple chunks. Adds the chunks to the chunk hashmap of the world.
  * 
  */
 void generateWorld(World& world); //TODO: camera position,

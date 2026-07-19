@@ -18,6 +18,8 @@ set(TESTSOURCES
     tests/test_chunk.cpp
     tests/test_chunkMesher.cpp
     tests/test_perlinNoise.cpp
+    tests/test_world.cpp
+    tests/test_worldGenerator.cpp
     )
 # source files for the core library without the main function
 set(CORE_SOURCES

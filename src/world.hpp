@@ -47,18 +47,13 @@ private:
 
 public:
     /**
-     * @brief Get a reference to the chunk at the specified coordinates. If the chunk does not exist, it will be created and initialized to default values.
+     * @brief Get a reference to the chunk at the specified CHUNK coordinates. If the chunk does not exist, it will be created and initialized to default values.
      */
     Chunk& getChunk(int chunkX, int chunkZ)
     {
         ChunkCoord coord{chunkX, chunkZ};
         // in c++17, the operator[] of unordered_map will create a new entry if the key does not exist.
         return chunks[coord];
-    }
-
-    int getSize()
-    {
-        return chunks.size();
     }
 
     std::unordered_map<ChunkCoord, Chunk, ChunkCoordHash> getChunkMap()
