@@ -85,22 +85,22 @@ target_include_directories(voxelizer PRIVATE
 # ---------------------------------------------------
 # Unit tests executable
 # ---------------------------------------------------
-#enable_testing()
-#add_executable(unit_tests ${TESTSOURCES} ${CORE_SOURCES})
+enable_testing()
+add_executable(unit_tests ${TESTSOURCES} ${CORE_SOURCES})
 
-#target_compile_options(unit_tests PRIVATE ${CMAKE_CXX_FLAGS} ${STRICS_WARNINGS} ${SANITIZE_FLAGS})
-#target_link_options(unit_tests PRIVATE ${SANITIZE_FLAGS})
+target_compile_options(unit_tests PRIVATE ${CMAKE_CXX_FLAGS} ${STRICS_WARNINGS} ${SANITIZE_FLAGS})
+target_link_options(unit_tests PRIVATE ${SANITIZE_FLAGS})
 
-#target_link_libraries(unit_tests PRIVATE 
-    #GTest::gtest_main 
-    #Threads::Threads 
-    #m
-#)
+target_link_libraries(unit_tests PRIVATE 
+    GTest::gtest_main 
+    Threads::Threads 
+    m
+)
 
-#target_include_directories(unit_tests PRIVATE 
-    #${CMAKE_SOURCE_DIR}/extern
-#)
+target_include_directories(unit_tests PRIVATE 
+    ${CMAKE_SOURCE_DIR}/extern
+)
 
 # Discover and register individual unit tests
-#include(GoogleTest)
-#gtest_discover_tests(unit_tests)
+include(GoogleTest)
+gtest_discover_tests(unit_tests)

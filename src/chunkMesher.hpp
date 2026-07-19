@@ -93,13 +93,12 @@
         }
     }
 
-        /**
-         * @brief Generate a mesh for the given chunk
-         * 
-         * @param chunk 
-         * @return MeshData 
-         */
-            inline void generateMesh(const Chunk& chunk, int chunkX, int chunkZ, MeshData& meshData)
+    /**
+     * @brief Generate a mesh for the given chunk
+     * 
+     * @param chunk 
+     */
+    inline void generateMesh(const Chunk& chunk, int chunkX, int chunkZ, MeshData& meshData)
     {
         // Vypočítáme o kolik bloků se tento chunk posune ve světě OpenGL
         float offsetX = chunkX * Chunk::SIZE_X;

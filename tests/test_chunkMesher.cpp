@@ -14,10 +14,11 @@
 class ChunkMesherTest : public ::testing::Test {
 protected:
     Chunk chunk{}; // Automaticky vynulovaný (prázdný) chunk pro každý test
+    ChunkMesher::MeshData mesh;
 };
 
 TEST_F(ChunkMesherTest, GenerateMeshEmptyChunk) {
-    auto mesh = ChunkMesher::generateMesh(chunk);
+    ChunkMesher::generateMesh(chunk, 0, 0, mesh);
 
     EXPECT_TRUE(mesh.vertices.empty());
     EXPECT_TRUE(mesh.indices.empty());
@@ -25,7 +26,7 @@ TEST_F(ChunkMesherTest, GenerateMeshEmptyChunk) {
 
 TEST_F(ChunkMesherTest, GenerateMeshSingleBlock) {
     setBlock(chunk, 0, 0, 0, BlockType::Dirt);
-    auto mesh = ChunkMesher::generateMesh(chunk);
+    ChunkMesher::generateMesh(chunk, 0, 0, mesh);
 
     EXPECT_FALSE(mesh.vertices.empty());
     EXPECT_FALSE(mesh.indices.empty());
@@ -35,7 +36,7 @@ TEST_F(ChunkMesherTest, GenerateMeshSingleBlock) {
 
 TEST_F(ChunkMesherTest, ColorCheck) {
     setBlock(chunk, 0, 0, 0, BlockType::Grass);
-    auto mesh = ChunkMesher::generateMesh(chunk);
+    ChunkMesher::generateMesh(chunk, 0, 0, mesh);
 
     utils::Color expectedColor = ChunkMesher::getBlockTypeColor(BlockType::Grass);
     ASSERT_FALSE(mesh.vertices.empty());
@@ -48,7 +49,7 @@ TEST_F(ChunkMesherTest, ColorCheck) {
 TEST_F(ChunkMesherTest, GenerateMeshMultipleBlocks) {
     setBlock(chunk, 0, 0, 0, BlockType::Dirt);
     setBlock(chunk, 1, 0, 0, BlockType::Stone);
-    auto mesh = ChunkMesher::generateMesh(chunk);
+    ChunkMesher::generateMesh(chunk, 0, 0, mesh);
 
     EXPECT_FALSE(mesh.vertices.empty());
     EXPECT_FALSE(mesh.indices.empty());
@@ -59,7 +60,7 @@ TEST_F(ChunkMesherTest, GenerateMeshMultipleBlocks) {
 TEST_F(ChunkMesherTest, GenerateMeshWithAirBlocks) {
     setBlock(chunk, 0, 0, 0, BlockType::Dirt);
     setBlock(chunk, 1, 0, 0, BlockType::Air); // This block should not contribute to the mesh
-    auto mesh = ChunkMesher::generateMesh(chunk);
+    ChunkMesher::generateMesh(chunk, 0, 0, mesh);
 
     EXPECT_FALSE(mesh.vertices.empty());
     EXPECT_FALSE(mesh.indices.empty());
@@ -71,7 +72,7 @@ TEST_F(ChunkMesherTest, GeometryCoordinatesCheck)
 {
     setBlock(chunk, 0, 0, 0, BlockType::Dirt);
     setBlock(chunk, 15, 15, 15, BlockType::Stone); // Test the farthest corner of the chunk
-    auto mesh = ChunkMesher::generateMesh(chunk);
+    ChunkMesher::generateMesh(chunk, 0, 0, mesh);
     ASSERT_FALSE(mesh.vertices.empty());
     
     // Check the first vertex coordinates
@@ -88,8 +89,8 @@ TEST_F(ChunkMesherTest, GeometryCoordinatesCheck)
 TEST_F(ChunkMesherTest, GeometryCoordinatesOutOfBoundsCheck)
 {
     setBlock(chunk, 16, 16, 16, BlockType::Stone); 
-    
-    auto mesh = ChunkMesher::generateMesh(chunk);
+    // 
+    ChunkMesher::generateMesh(chunk, 0, 0, mesh);
     
     // Silently ignore out-of-bounds blocks, so the mesh should be empty, 
     // the chunk is not modified, and no vertices or indices should be generated.
@@ -107,7 +108,7 @@ TEST_F(ChunkMesherTest, GeometryCoordinatesOutOfBoundsCheck)
 TEST_F(ChunkMesherTest, FirstFaceIndicesAreCorrect) {
     setBlock(chunk, 0, 0, 0, BlockType::Stone);
     
-    ChunkMesher::MeshData mesh = ChunkMesher::generateMesh(chunk);
+    ChunkMesher::generateMesh(chunk, 0, 0, mesh);
     
     ASSERT_GE(mesh.indices.size(), 6);
     
@@ -137,7 +138,7 @@ TEST_F(ChunkMesherTest, FaceCullingTest) {
     setBlock(chunk, 0, 0, 0, BlockType::Dirt);
     setBlock(chunk, 1, 0, 0, BlockType::Dirt); // This block is adjacent to the first one
 
-    ChunkMesher::MeshData mesh = ChunkMesher::generateMesh(chunk);
+    ChunkMesher::generateMesh(chunk, 0, 0, mesh);
 
     // Each block has 6 faces, but the adjacent face between them should not be generated.
     // So we expect 10 faces in total (5 for each block).
@@ -155,7 +156,7 @@ TEST_F(ChunkMesherTest, FaceCullingCompletelySurroundedBlock) {
         }
     }
 
-    auto mesh = ChunkMesher::generateMesh(chunk);
+    ChunkMesher::generateMesh(chunk, 0, 0, mesh);
 
     // Without face culling: 27 blocks * 6 faces = 162 faces (648 vertices)
     // With face culling:
