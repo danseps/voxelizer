@@ -58,9 +58,9 @@ void generateChunk(Chunk& chunk, int offsetX, int offsetZ)
 void generateWorld(World& world)
 {
     // For demonstration, let's generate a 3x3 grid of chunks
-    for (int chunkX = -1; chunkX <= 1; ++chunkX)
+    for (int chunkX = -3; chunkX <= 3; ++chunkX)
     {
-        for (int chunkZ = -1; chunkZ <= 1; ++chunkZ)
+        for (int chunkZ = -3; chunkZ <= 3; ++chunkZ)
         {
             Chunk& chunk = world.getChunk(chunkX, chunkZ);
             generateChunk(chunk, chunkX, chunkZ);

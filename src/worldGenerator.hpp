@@ -14,7 +14,7 @@
 #include "chunkMesher.hpp"
 
 /**
- * @brief Generates a single chunk with the specified offset
+ * @brief Generates a chunk based on Perlin noise on a given world coord
  * 
  * @param offsetX the X position of the chunk in a world (2D array)
  * @param offsetZ the Z position of the chunk in a world
@@ -29,4 +29,11 @@ void generateChunk(Chunk& chunk, int offsetX, int offsetZ);
 void generateWorld(World& world); //TODO: camera position,
 // plnit world podle ní, generovat mesh z kazdeho chunku (z chunks mapy)
 
+/**
+ * @brief Generates a mesh for the entire world based on its chunks.
+ * //TODO: zmenit na generovani jen pro viditelne chunky
+ * 
+ * @param world 
+ * @param mesh 
+ */
 void generateWorldMesh(World& world, ChunkMesher::MeshData& mesh);

@@ -44,6 +44,9 @@ float lastY = windowHeight / 2.0f;
 float deltaTime = 0.0f; // Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
 
+glm::vec3 lightPos(0.0f, 50.0f, 0.0f); // Position of the light source
+
+
 /**
  * @brief Callback function to adjust the viewport when the window is resized
  * 
@@ -103,6 +106,50 @@ int main ()
     World world{};
     generateWorld(world); // Generate a 3x3 grid of chunks in the world
     generateWorldMesh(world, mesh);
+
+    float lightVertices[] = {
+        -0.5f, -0.5f, -0.5f, 
+         0.5f, -0.5f, -0.5f,  
+         0.5f,  0.5f, -0.5f,  
+         0.5f,  0.5f, -0.5f,  
+        -0.5f,  0.5f, -0.5f, 
+        -0.5f, -0.5f, -0.5f, 
+
+        -0.5f, -0.5f,  0.5f, 
+         0.5f, -0.5f,  0.5f,  
+         0.5f,  0.5f,  0.5f,  
+         0.5f,  0.5f,  0.5f,  
+        -0.5f,  0.5f,  0.5f, 
+        -0.5f, -0.5f,  0.5f, 
+
+        -0.5f,  0.5f,  0.5f, 
+        -0.5f,  0.5f, -0.5f, 
+        -0.5f, -0.5f, -0.5f, 
+        -0.5f, -0.5f, -0.5f, 
+        -0.5f, -0.5f,  0.5f, 
+        -0.5f,  0.5f,  0.5f, 
+
+         0.5f,  0.5f,  0.5f,  
+         0.5f,  0.5f, -0.5f,  
+         0.5f, -0.5f, -0.5f,  
+         0.5f, -0.5f, -0.5f,  
+         0.5f, -0.5f,  0.5f,  
+         0.5f,  0.5f,  0.5f,  
+
+        -0.5f, -0.5f, -0.5f, 
+         0.5f, -0.5f, -0.5f,  
+         0.5f, -0.5f,  0.5f,  
+         0.5f, -0.5f,  0.5f,  
+        -0.5f, -0.5f,  0.5f, 
+        -0.5f, -0.5f, -0.5f, 
+
+        -0.5f,  0.5f, -0.5f, 
+         0.5f,  0.5f, -0.5f,  
+         0.5f,  0.5f,  0.5f,  
+         0.5f,  0.5f,  0.5f,  
+        -0.5f,  0.5f,  0.5f, 
+        -0.5f,  0.5f, -0.5f, 
+    };
     
     /** TEST END */
 
@@ -128,12 +175,9 @@ int main ()
     std::cout << "Hello, from voxelizer!\n";
 
     Shader shader("res/shaders/vertexShader.vs", "res/shaders/fragmentShader.fs");
+    Shader lightShader("res/shaders/lightSourceVertexShader.vs", "res/shaders/lightSourceFragShader.fs");
     shader.use();
-
     
-    // Callback functions
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    glfwSetCursorPosCallback(window, mouse_callback);
     // Enable depth testing
     glEnable(GL_DEPTH_TEST);
     // Face culling
@@ -141,6 +185,9 @@ int main ()
     // Set the viewport
     glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // Capture the mouse cursor
+    // Callback functions
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
     // Vertex data and buffer setup
@@ -168,6 +215,20 @@ int main ()
     glBindBuffer(GL_ARRAY_BUFFER, 0); // Unbind the VBO
     glBindVertexArray(0); // Unbind the VAO (bind when rendering)
 
+    // LIGHT SOURCE SETUP -------------
+    unsigned int lightVBO, lightVAO;
+    glGenVertexArrays(1, &lightVAO);
+    glBindVertexArray(lightVAO);
+    glGenBuffers(1, &lightVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, lightVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(lightVertices), lightVertices, GL_STATIC_DRAW);
+    // Set the vertex attributes (only position data for the lamp)
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*)0);
+    glEnableVertexAttribArray(0);
+    // ---------------------------------
+
+    // Shader initial setup
+    shader.setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f)); // Set light color to white
 
     // Main render loop
     while(!glfwWindowShouldClose(window))
@@ -181,23 +242,34 @@ int main ()
         // Rendering commands here
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+        
+        // VOXEL MESH RENDERING
         shader.use();
-
         view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-        projection = glm::perspective(glm::radians(fov), (float)windowWidth / (float)windowHeight, 0.1f, 100.0f);
-        shader.setMat4("model", model);
+        projection = glm::perspective(glm::radians(fov), (float)windowWidth / (float)windowHeight, 0.1f, 1000.0f);
 
+        model = glm::mat4(1.0f); // Reset model matrix for the voxel mesh
+        shader.setMat4("model", model);
         shader.setMat4("view", view);
         shader.setMat4("proj", projection);
 
-
-
-
         glBindVertexArray(VAO);
-        // Set polygon mode to wireframe for debugging
-        glPolygonMode(GL_FILL, GL_LINE); // Set polygon mode to wireframe
+        // wireframe for debugging
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Set polygon mode
         glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
+
+        // LIGHT SOURCE RENDERING
+        lightShader.use();
+        lightShader.setMat4("proj", projection);
+        lightShader.setMat4("view", view);
+
+        glm::mat4 lightModel = glm::mat4(1.0f); // Reset model matrix for the light source
+        lightModel = glm::translate(lightModel, lightPos);
+        lightModel = glm::scale(lightModel, glm::vec3(0.2f)); // Scale down the light source cube
+        lightShader.setMat4("model", lightModel);
+
+        glBindVertexArray(lightVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 36); // Draw the light source cube
 
         glfwSwapBuffers(window);
         glfwPollEvents();
