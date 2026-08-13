@@ -44,7 +44,7 @@ float lastY = windowHeight / 2.0f;
 float deltaTime = 0.0f; // Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
 
-glm::vec3 lightPos(0.0f, 50.0f, 0.0f); // Position of the light source
+glm::vec3 lightPos(20.0f, 20.0f, 0.0f); // Position of the light source
 
 
 /**
@@ -112,7 +112,7 @@ int main ()
          0.5f, -0.5f, -0.5f,  
          0.5f,  0.5f, -0.5f,  
          0.5f,  0.5f, -0.5f,  
-        -0.5f,  0.5f, -0.5f, 
+        -0.5f,  0.5f, -0.5f,  
         -0.5f, -0.5f, -0.5f, 
 
         -0.5f, -0.5f,  0.5f, 
@@ -147,7 +147,7 @@ int main ()
          0.5f,  0.5f, -0.5f,  
          0.5f,  0.5f,  0.5f,  
          0.5f,  0.5f,  0.5f,  
-        -0.5f,  0.5f,  0.5f, 
+        -0.5f,  0.5f,  0.5f,  
         -0.5f,  0.5f, -0.5f, 
     };
     
@@ -211,6 +211,12 @@ int main ()
     // color attributes
     glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(ChunkMesher::Vertex), (void*)offsetof(ChunkMesher::Vertex, color));
     glEnableVertexAttribArray(1);
+    // normal attributes //TODO: add in generated mesh
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(ChunkMesher::Vertex), (void*)offsetof(ChunkMesher::Vertex, nx));
+    glEnableVertexAttribArray(2);
+    // texture coordinates attributes //TODO: add in generated mesh
+    glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(ChunkMesher::Vertex), (void*)offsetof(ChunkMesher::Vertex, u));
+    glEnableVertexAttribArray(3);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0); // Unbind the VBO
     glBindVertexArray(0); // Unbind the VAO (bind when rendering)
@@ -247,6 +253,10 @@ int main ()
         shader.use();
         view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
         projection = glm::perspective(glm::radians(fov), (float)windowWidth / (float)windowHeight, 0.1f, 1000.0f);
+        
+        //shader.setVec3("lightPos", lightPos);
+        shader.setVec3("lightDirection", -1.0f, -1.0f, -0.3f); // Set light direction for directional light
+        shader.setVec3("viewPos", cameraPos);
 
         model = glm::mat4(1.0f); // Reset model matrix for the voxel mesh
         shader.setMat4("model", model);
@@ -255,11 +265,11 @@ int main ()
 
         glBindVertexArray(VAO);
         // wireframe for debugging
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Set polygon mode
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Set polygon mode
         glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
 
         // LIGHT SOURCE RENDERING
-        lightShader.use();
+        /*lightShader.use();
         lightShader.setMat4("proj", projection);
         lightShader.setMat4("view", view);
 
@@ -269,7 +279,9 @@ int main ()
         lightShader.setMat4("model", lightModel);
 
         glBindVertexArray(lightVAO);
+        glDisable(GL_CULL_FACE);
         glDrawArrays(GL_TRIANGLES, 0, 36); // Draw the light source cube
+        glEnable(GL_CULL_FACE);*/
 
         glfwSwapBuffers(window);
         glfwPollEvents();

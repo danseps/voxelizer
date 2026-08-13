@@ -19,5 +19,5 @@ void main()
     gl_Position = proj * view * model * vec4(aPos, 1.0);
     vertexColor = aCol;
     fragPos = vec3(model * vec4(aPos, 1.0));
-    normal = aNormal;
+    normal = mat3(transpose(inverse(model))) * aNormal; // Transform normal to world space TODO: on CPU, send through uniform
 }

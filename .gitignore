@@ -132,4 +132,7 @@ $RECYCLE.BIN/
 # CMake build directory
 build/
 
+# Helper files
+learnopengl.txt
+
 # End of https://www.toptal.com/developers/gitignore/api/c++,cmake,linux,windows,git,visualstudiocode

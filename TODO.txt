@@ -19,3 +19,24 @@ Objektově orientovaný Mesher: Převést to z "funkce" na třídu Mesh, která 
 right now height is purely a 2D heightmap 
 (no caves, overhangs, or floating terrain). 
 Adding 3D noise is the next real jump in complexity.
+
+
+Materialy:
+Jak se tedy řeší materiály (voda vs. hlína) ve Voxel Enginu?
+
+V budoucnu to vyřešíme jedním z těchto dvou velmi elegantních způsobů (přímo v datech, ne přes uniformy):
+
+1. Přidání "Block ID" do VBO (Nejjednodušší cesta)
+Aktuálně do grafické karty posíláš pole čísel (X, Y, Z, R, G, B, nX, nY, nZ).
+Až budeš chtít materiály, prostě tam přidáš ještě jedno číslo navíc – BlockType (třeba 1 pro Hlínu, 2 pro Vodu).
+Tvoje VBO pak pošle toto číslo až do Fragment Shaderu. Tam si napíšeš jednoduchou podmínku:
+OpenGL Shading Language
+
+float specStrength = 0.0;
+// Pokud je to Voda (ID 2) nebo Led (ID 3), zapni zrcadlové odlesky
+if (blockType == 2.0 || blockType == 3.0) {
+    specStrength = 0.8; 
+}
+
+2. Texture Atlases + Specular Maps (Profi cesta)
+Až opustíš plné barvy (RGB) a začneš používat opravdové obrázky textur (tráva, kámen), nahraješ do grafické karty celou obří "paletu" textur (Texture Atlas). K tomu můžeš nahrát i černobílý obrázek (Specular map), kde je hlína černá (0 odlesk) a voda bílá (max odlesk). Shader se prostě podívá do obrázku a zjistí, jak moc se má na daném pixelu lesknout.
