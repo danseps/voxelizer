@@ -22,6 +22,9 @@
 #include "world.hpp"
 #include "worldGenerator.hpp"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb/stb_image.h"
+
 // settings
 constexpr int WINDOW_WIDTH = 1920;
 constexpr int WINDOW_HEIGHT = 1080;
@@ -236,6 +239,38 @@ int main ()
     // Shader initial setup
     shader.setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f)); // Set light color to white
 
+    // Texture setup
+    unsigned int texture;
+    glGenTextures(1, &texture);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    // set texture parameters after binding
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    int width, height, nrChannels;
+    stbi_set_flip_vertically_on_load(true); // Flip image vertically on load so texture V coordinate matches OpenGL convention
+    unsigned char *data = stbi_load("res/textures/atlasTex.png", &width, &height, &nrChannels, 0);
+    if (data)
+    {
+        GLenum format = GL_RGB;
+        if (nrChannels == 4)
+            format = GL_RGBA;
+        else if (nrChannels == 1)
+            format = GL_RED;
+
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else
+    {
+        std::cout << "Failed to load texture" << std::endl;
+    }
+
+    stbi_image_free(data); // Free the image memory after generating the texture
+    // tell shader which texture unit to use
+    shader.setInt("texture1", 0);
+
+
     // Main render loop
     while(!glfwWindowShouldClose(window))
     {
@@ -263,6 +298,7 @@ int main ()
         shader.setMat4("view", view);
         shader.setMat4("proj", projection);
 
+        glBindTexture(GL_TEXTURE_2D, texture); // Bind the texture before rendering
         glBindVertexArray(VAO);
         // wireframe for debugging
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Set polygon mode

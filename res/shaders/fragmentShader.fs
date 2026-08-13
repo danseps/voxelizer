@@ -6,12 +6,13 @@ out vec4 FragColor;
 in vec3 fragPos;
 in vec4 vertexColor; // TODO: texture
 in vec3 normal;
+in vec2 texCoord;
 
 uniform vec3 lightColor;
 //uniform vec3 lightPos;
 uniform vec3 lightDirection;
 uniform vec3 viewPos;
-
+uniform sampler2D texture1;
 
 void main()
 {
@@ -32,5 +33,6 @@ void main()
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
     vec3 specular = specularStrength * spec * lightColor;*/
 
-    FragColor = vertexColor * vec4(ambient + diffuse /*+ specular*/, 1.0);
+    //FragColor = vertexColor * vec4(ambient + diffuse /*+ specular*/, 1.0);
+    FragColor = texture(texture1, texCoord) * vec4(ambient + diffuse /*+ specular*/, 1.0);
 }

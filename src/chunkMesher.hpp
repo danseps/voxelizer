@@ -17,6 +17,16 @@
  namespace ChunkMesher 
  {
 
+    enum class Face
+    {
+        Front,
+        Back,
+        Left,
+        Right,
+        Top,
+        Bottom
+    };
+
     /**
      * @brief 
      * 
@@ -53,15 +63,23 @@
                         float x1, float y1, float z1,
                         float x2, float y2, float z2,
                         float x3, float y3, float z3,
-                        const utils::Color& color,
-                        float nx, float ny, float nz) 
+                        utils::Color color,
+                        float nx, float ny, float nz,
+                        std::pair<float, float> textureCoords) 
     {
             uint32_t offset = static_cast<uint32_t>(meshData.vertices.size());
 
-            meshData.vertices.push_back({x0, y0, z0, color, nx, ny, nz, 0.0f, 0.0f}); // + texture coordinates (u, v)
-            meshData.vertices.push_back({x1, y1, z1, color, nx, ny, nz, 1.0f, 0.0f});
-            meshData.vertices.push_back({x2, y2, z2, color, nx, ny, nz, 1.0f, 1.0f});
-            meshData.vertices.push_back({x3, y3, z3, color, nx, ny, nz, 0.0f, 1.0f});
+            // textureCoords contains the tile origin in normalized [0,1] space (e.g. col/16, row/16)
+            const float tileSize = 1.0f / 16.0f; // assuming a 16x16 tile atlas
+            float u0 = textureCoords.first;
+            float v0 = textureCoords.second;
+            float u1 = u0 + tileSize;
+            float v1 = v0 + tileSize;
+
+            meshData.vertices.push_back({x0, y0, z0, color, nx, ny, nz, u0, v0});
+            meshData.vertices.push_back({x1, y1, z1, color, nx, ny, nz, u1, v0});
+            meshData.vertices.push_back({x2, y2, z2, color, nx, ny, nz, u1, v1});
+            meshData.vertices.push_back({x3, y3, z3, color, nx, ny, nz, u0, v1});
 
             // First triangle
             meshData.indices.push_back(offset + 0);
@@ -77,22 +95,31 @@
      * @brief Get the color associated with a specific block type
      * 
      * @param blockType 
-     * @return utils::Color 
+     * @return std::pair<float, float> A pair representing the u and v texture coordinates for the block type
     */
-    inline utils::Color getBlockTypeColor(BlockType blockType)
+    inline std::pair<float, float> tileUV(int x, int y)
+    {
+        return std::make_pair(x / 16.0f, y / 16.0f);
+    }
+
+    inline std::pair<float, float> getBlockTextureForFace(BlockType blockType, Face face)
     {
         switch (blockType)
-        {//TODO: Add more colors for different block types
-            case BlockType::Grass: return utils::GREEN;
-            case BlockType::Dirt: return utils::BROWN;
-            case BlockType::Stone: return utils::GRAY;
-            case BlockType::Water: return utils::BLUE;
-            case BlockType::Sand: return utils::YELLOW;
-            case BlockType::Wood: return utils::BROWN;
-            case BlockType::Leaves: return utils::GREEN;
-            case BlockType::Snow: return utils::WHITE;
-            case BlockType::Lava: return utils::RED;
-            default: return utils::BLACK; // Air or unknown block type
+        {
+            case BlockType::Stone:
+                return tileUV(1, 15);
+            case BlockType::Dirt:
+                return tileUV(2, 15);
+            case BlockType::Grass:
+                // Minecraft-like mapping in this atlas:
+                // top = grass top, sides = grass side, bottom = dirt.
+                if (face == Face::Top)
+                    return tileUV(0, 15);
+                if (face == Face::Bottom)
+                    return tileUV(2, 15);
+                return tileUV(3, 15);
+            default:
+                return tileUV(0, 0);
         }
     }
 
@@ -130,32 +157,30 @@
                     float wpy = wy + 1.0f;
                     float wpz = wz + 1.0f;
 
-                    utils::Color color = getBlockTypeColor(block);
-
                     // A teď už používáme ty posunuté (World) souřadnice (wx, wy, wz)!
                     // 1. PŘEDNÍ STĚNA (+Z)
                     if (getBlock(chunk, x, y, z + 1) == BlockType::Air) //TODO: vytvorit a poslat cely vertex?? misto tolika cisel 
-                        addFace(meshData, wx, wy, wpz, wpx, wy, wpz, wpx, wpy, wpz, wx, wpy, wpz, color, 0.0f, 0.0f, 1.0f); // Normálový vektor pro přední stěnu je (0, 0, 1)
+                        addFace(meshData, wx, wy, wpz, wpx, wy, wpz, wpx, wpy, wpz, wx, wpy, wpz, utils::WHITE /*TODO: pozdeji budem pouzivat u lightingu ig*/, 0.0f, 0.0f, 1.0f, getBlockTextureForFace(block, Face::Front)); // Normálový vektor pro přední stěnu je (0, 0, 1)
 
                     // 2. ZADNÍ STĚNA (-Z)
                     if (getBlock(chunk, x, y, z - 1) == BlockType::Air)
-                        addFace(meshData, wpx, wy, wz, wx, wy, wz, wx, wpy, wz, wpx, wpy, wz, color, 0.0f, 0.0f, -1.0f); 
+                        addFace(meshData, wpx, wy, wz, wx, wy, wz, wx, wpy, wz, wpx, wpy, wz, utils::WHITE, 0.0f, 0.0f, -1.0f, getBlockTextureForFace(block, Face::Back));
 
                     // 3. LEVÁ STĚNA (-X)
                     if (getBlock(chunk, x - 1, y, z) == BlockType::Air)
-                        addFace(meshData, wx, wy, wz, wx, wy, wpz, wx, wpy, wpz, wx, wpy, wz, color, -1.0f, 0.0f, 0.0f);
+                        addFace(meshData, wx, wy, wz, wx, wy, wpz, wx, wpy, wpz, wx, wpy, wz, utils::WHITE, -1.0f, 0.0f, 0.0f, getBlockTextureForFace(block, Face::Left));
 
                     // 4. PRAVÁ STĚNA (+X)
                     if (getBlock(chunk, x + 1, y, z) == BlockType::Air)
-                        addFace(meshData, wpx, wy, wpz, wpx, wy, wz, wpx, wpy, wz, wpx, wpy, wpz, color, 1.0f, 0.0f, 0.0f);
+                        addFace(meshData, wpx, wy, wpz, wpx, wy, wz, wpx, wpy, wz, wpx, wpy, wpz, utils::WHITE, 1.0f, 0.0f, 0.0f, getBlockTextureForFace(block, Face::Right));
 
                     // 5. HORNÍ STĚNA (+Y)
                     if (getBlock(chunk, x, y + 1, z) == BlockType::Air)
-                        addFace(meshData, wx, wpy, wpz, wpx, wpy, wpz, wpx, wpy, wz, wx, wpy, wz, color, 0.0f, 1.0f, 0.0f);
+                        addFace(meshData, wx, wpy, wpz, wpx, wpy, wpz, wpx, wpy, wz, wx, wpy, wz, utils::WHITE, 0.0f, 1.0f, 0.0f, getBlockTextureForFace(block, Face::Top));
 
                     // 6. SPODNÍ STĚNA (-Y)
                     if (getBlock(chunk, x, y - 1, z) == BlockType::Air)
-                        addFace(meshData, wx, wy, wz, wpx, wy, wz, wpx, wy, wpz, wx, wy, wpz, color, 0.0f, -1.0f, 0.0f);
+                        addFace(meshData, wx, wy, wz, wpx, wy, wz, wpx, wy, wpz, wx, wy, wpz, utils::WHITE, 0.0f, -1.0f, 0.0f, getBlockTextureForFace(block, Face::Bottom));
                 }
             }
         }
