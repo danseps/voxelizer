@@ -7,6 +7,7 @@ in vec3 fragPos;
 in vec4 vertexColor; // TODO: texture
 in vec3 normal;
 in vec2 texCoord;
+in float ao;
 
 uniform vec3 lightColor;
 //uniform vec3 lightPos;
@@ -34,5 +35,5 @@ void main()
     vec3 specular = specularStrength * spec * lightColor;*/
 
     //FragColor = vertexColor * vec4(ambient + diffuse /*+ specular*/, 1.0);
-    FragColor = texture(texture1, texCoord) * vec4(ambient + diffuse /*+ specular*/, 1.0);
+    FragColor = texture(texture1, texCoord) * vec4((ambient + diffuse /*+ specular*/) * ao, 1.0);
 }

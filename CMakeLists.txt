@@ -56,8 +56,19 @@ find_package(OpenGL REQUIRED)
 # 3rd party libraries
 # ---------------------------------------------------
 add_library(glad_lib STATIC extern/glad/src/glad.c)
+add_library(imgui_lib STATIC 
+    extern/imgui/imgui.cpp
+    extern/imgui/imgui_demo.cpp
+    extern/imgui/imgui_draw.cpp
+    extern/imgui/imgui_tables.cpp
+    extern/imgui/imgui_widgets.cpp
+    # ImGui Backend
+    extern/imgui/imgui_impl_glfw.cpp
+    extern/imgui/imgui_impl_opengl3.cpp
+)
 target_include_directories(glad_lib PUBLIC 
     ${CMAKE_SOURCE_DIR}/extern
+    ${CMAKE_SOURCE_DIR}/extern/imgui
 )
 
 # ---------------------------------------------------
@@ -66,6 +77,8 @@ target_include_directories(glad_lib PUBLIC
 add_executable(voxelizer 
     src/main.cpp 
     ${CORE_SOURCES} 
+    src/myImgui.hpp
+    src/myImgui.cpp
 )
 
 target_compile_options(voxelizer PRIVATE ${CMAKE_CXX_FLAGS} ${STRICS_WARNINGS} ${SANITIZE_FLAGS})
@@ -73,10 +86,11 @@ target_link_options(voxelizer PRIVATE ${SANITIZE_FLAGS})
 
 target_link_libraries(voxelizer PRIVATE 
     glfw 
-    GL 
+    OpenGL::GL 
     m
     Threads::Threads 
     glad_lib 
+    imgui_lib
     )
 
 target_include_directories(voxelizer PRIVATE 

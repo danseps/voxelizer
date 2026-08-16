@@ -21,6 +21,7 @@
 #include "perlinNoise.hpp"
 #include "world.hpp"
 #include "worldGenerator.hpp"
+#include "myImgui.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
@@ -193,6 +194,8 @@ int main ()
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
+    imGuiInit(window);
+
     // Vertex data and buffer setup
     unsigned int VBO, VAO, EBO;
 
@@ -220,6 +223,9 @@ int main ()
     // texture coordinates attributes //TODO: add in generated mesh
     glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(ChunkMesher::Vertex), (void*)offsetof(ChunkMesher::Vertex, u));
     glEnableVertexAttribArray(3);
+    // ambient occlusion attributes
+    glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, sizeof(ChunkMesher::Vertex), (void*)offsetof(ChunkMesher::Vertex, ao));
+    glEnableVertexAttribArray(4);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0); // Unbind the VBO
     glBindVertexArray(0); // Unbind the VAO (bind when rendering)
@@ -319,6 +325,7 @@ int main ()
         glDrawArrays(GL_TRIANGLES, 0, 36); // Draw the light source cube
         glEnable(GL_CULL_FACE);*/
 
+        imGuiRender(); // Render the ImGui interface
         glfwSwapBuffers(window);
         glfwPollEvents();
     }

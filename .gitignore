@@ -134,5 +134,6 @@ build/
 
 # Helper files
 learnopengl.txt
+imgui.ini
 
 # End of https://www.toptal.com/developers/gitignore/api/c++,cmake,linux,windows,git,visualstudiocode
