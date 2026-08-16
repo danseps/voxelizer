@@ -32,6 +32,7 @@ set(CORE_SOURCES
     src/world.hpp
     src/worldGenerator.hpp
     src/worldGenerator.cpp
+    src/mesh.hpp
 )
 
 # ---------------------------------------------------

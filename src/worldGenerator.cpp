@@ -16,6 +16,9 @@
 
 void generateChunk(Chunk& chunk, int offsetX, int offsetZ)
 {
+    constexpr int TERRAIN_BASE = 2;
+    constexpr int MAX_TERRAIN_HEIGHT = 32; // Maximum height of the terrain above the base level, TODO:adjust as needed
+
     for (int z = 0; z < Chunk::SIZE_Z; z++)
     {
         float globalZ = offsetZ * Chunk::SIZE_Z + z;
@@ -24,21 +27,13 @@ void generateChunk(Chunk& chunk, int offsetX, int offsetZ)
             float globalX = offsetX * Chunk::SIZE_X + x;
 
             float noiseVal = octavePerlin(globalX * 0.05f, globalZ * 0.05f, 12, 0.5f);
-            // 2. Šum je od -1.0 do 1.0. Upravíme to matematicky na 0.0 až 1.0.
             float normalized = (noiseVal + 1.0f) / 2.0f;
-            
-            // 3. Převedeme to na výšku kopce v blocích (např. od 2 do 14 bloků vysoko)
-            int height = 2 + static_cast<int>(normalized * (Chunk::SIZE_Y - 4));
 
-            //TODO: debug
-            if (height < 0 || height > Chunk::SIZE_Y) {
-            printf("VAROVÁNÍ: Špatná výška: %d pro X:%f Z:%f\n", height, globalX, globalZ);
-            height = 5; // Bezpečná hodnota
-        }
-            
-            for (int y = 0; y < height; y++) {
-                
-                // TODO: zmenit, zatim jen podle vysky
+            int height = TERRAIN_BASE + static_cast<int>(normalized * MAX_TERRAIN_HEIGHT);
+            height = std::max(1, std::min(height, static_cast<int>(Chunk::SIZE_Y - 1)));
+
+            for (int y = 0; y < height; y++)
+            {
                 if (y == height - 1) {
                     setBlock(chunk, x, y, z, BlockType::Grass);
                 } else if (y >= height - 4) {
@@ -47,9 +42,7 @@ void generateChunk(Chunk& chunk, int offsetX, int offsetZ)
                     setBlock(chunk, x, y, z, BlockType::Stone);
                 }
             }
-
         }
-        
     }
 }
 

@@ -179,7 +179,7 @@ int main ()
     std::cout << "Hello, from voxelizer!\n";
 
     Shader shader("res/shaders/vertexShader.vs", "res/shaders/fragmentShader.fs");
-    Shader lightShader("res/shaders/lightSourceVertexShader.vs", "res/shaders/lightSourceFragShader.fs");
+    //Shader lightShader("res/shaders/lightSourceVertexShader.vs", "res/shaders/lightSourceFragShader.fs");
     shader.use();
     
     // Enable depth testing

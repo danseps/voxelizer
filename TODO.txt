@@ -5,11 +5,11 @@ kurzor uprostred jak v mc
 + raycasting a interakce
 DONE: kamera ne vzhledem ke stredu
 optimalizace - vic bloku u sebe jako jeden velky blok (greedy meshing)
-imgui fps a lehke ovladani
+DONE: imgui fps a lehke ovladani
 kolize
-lightning
+DONE(basic): lighting
 frustrum culling
-textury
+DONE(podpora ne lepsi): textury
 LOD scales with distance
 chunky jako jednotlive ne jako jeden velky world a kazdy svuj vao vbo (optimalizace změn)
 Objektově orientovaný Mesher: Převést to z "funkce" na třídu Mesh, která drží svůj VAO/VBO.

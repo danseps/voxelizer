@@ -34,7 +34,7 @@ enum class BlockType : uint8_t
 struct Chunk
 {
     static constexpr uint8_t SIZE_X = 16; 
-    static constexpr uint8_t SIZE_Y = 16; 
+    static constexpr uint8_t SIZE_Y = 64; 
     static constexpr uint8_t SIZE_Z = 16; 
     static constexpr int VOLUME = SIZE_X * SIZE_Y * SIZE_Z;
     BlockType blocks[VOLUME];
