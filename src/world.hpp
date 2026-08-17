@@ -72,4 +72,23 @@ public:
         ChunkCoord coord{chunkX, chunkZ};
         return chunks.find(coord) != chunks.end();
     }
+
+    /**
+     * @brief Clear all chunks from the world.
+     */
+    void clearChunks()
+    {
+        chunks.clear();
+    }
+
+    /**
+     * @brief Delete a chunk from the world.
+     * @param chunkX The x-coordinate of the chunk.
+     * @param chunkZ The z-coordinate of the chunk.
+     */
+    void deleteChunk(int chunkX, int chunkZ)
+    {
+        ChunkCoord coord{chunkX, chunkZ};
+        chunks.erase(coord);
+    }
  };

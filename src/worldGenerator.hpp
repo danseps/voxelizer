@@ -13,6 +13,7 @@
 #include "world.hpp"
 #include "chunkMesher.hpp"
 #include "mesh.hpp"
+#include <glm/glm.hpp>
 
 /**
  * @brief Generates a chunk based on Perlin noise on a given world coord
@@ -38,3 +39,12 @@ void generateWorld(World& world); //TODO: camera position,
  * @param chunkMeshes 
  */
 void generateWorldMesh(World& world, std::unordered_map<ChunkCoord, Mesh*, ChunkCoordHash>& chunkMeshes);
+
+/**
+ * @brief 
+ * 
+ * @param world 
+ * @param chunkMeshes 
+ * @param cameraPos 
+ */
+void updateChunks(World& world, std::unordered_map<ChunkCoord, Mesh*, ChunkCoordHash>& chunkMeshes, const glm::vec3& cameraPos);

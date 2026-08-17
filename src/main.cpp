@@ -128,8 +128,9 @@ int main ()
     /** TODO: TEST */
     std::unordered_map<ChunkCoord, Mesh*, ChunkCoordHash> chunkMeshes; // Map to store meshes for each chunk
     World world{};
-    generateWorld(world); // Generate a 3x3 grid of chunks in the world
-   generateWorldMesh(world, chunkMeshes); // Generate meshes for all chunks in the world
+    /*generateWorld(world); // Generate a 3x3 grid of chunks in the world
+    generateWorldMesh(world, chunkMeshes); // Generate meshes for all chunks in the world*/
+    updateChunks(world, chunkMeshes, cameraPos); // Update chunks based on the camera position
 
     /*float lightVertices[] = {
         -0.5f, -0.5f, -0.5f, 
@@ -275,6 +276,7 @@ int main ()
         glBindTexture(GL_TEXTURE_2D, texture); // Bind the texture before rendering
         
         // Draw each chunk mesh
+        updateChunks(world, chunkMeshes, cameraPos); // Update chunks based on the camera position
         for (const auto& [coord, mesh] : chunkMeshes)
         {
             mesh->draw(); // Draw each chunk mesh

@@ -73,3 +73,64 @@ void generateWorldMesh(World& world, std::unordered_map<ChunkCoord, Mesh*, Chunk
         chunkMeshes[coord] = mesh; // Store the mesh in the map
     }
 }
+
+void updateChunks(World& world, std::unordered_map<ChunkCoord, Mesh*, ChunkCoordHash>& chunkMeshes, const glm::vec3& cameraPos)
+{
+    //TODO: changeable
+    int renderDistance = 4; // Number of chunks to render in each direction from the camera
+    
+    // Calculate the chunk coordinates of the camera position
+    glm::ivec2 myChunkCoord = {
+        std::floor(cameraPos.x / Chunk::SIZE_X),
+        std::floor(cameraPos.z / Chunk::SIZE_Z)
+    };
+
+    // Determine which chunks should be present based on the camera position and render distance
+    for (int x = myChunkCoord.x - renderDistance; x <= myChunkCoord.x + renderDistance; x++)
+    {
+        for (int z = myChunkCoord.y - renderDistance; z <= myChunkCoord.y + renderDistance; z++)
+        {
+            ChunkCoord coord{x, z};
+
+            if(chunkMeshes.find(coord) == chunkMeshes.end())
+            {
+                if (!world.hasChunk(x, z))
+                {
+                    // Generate the chunk to RAM if it doesn't exist
+                    Chunk& newChunk = world.getChunk(x, z);
+                    generateChunk(newChunk, x, z);
+                }
+
+                // Generate mesh for the new chunk
+                Chunk& newChunk = world.getChunk(x, z);
+                Mesh* mesh = new Mesh();
+                ChunkMesher::MeshData chunkMeshData;
+                ChunkMesher::generateMesh(newChunk, x, z, chunkMeshData);
+                mesh->uploadData(chunkMeshData);
+                chunkMeshes[coord] = mesh;
+            }
+        }
+    }
+
+    // Remove chunks that are outside the render distance
+    for (auto it = chunkMeshes.begin(); it != chunkMeshes.end();)
+    {
+        ChunkCoord coord = it->first;
+        Mesh* mesh = it->second;
+
+        if (std::abs(coord.x - myChunkCoord.x) > (renderDistance + 1) || 
+            std::abs(coord.z - myChunkCoord.y) > (renderDistance + 1))
+        {
+            // Delete the mesh from VRAM and remove it from the map
+            delete mesh;
+            it = chunkMeshes.erase(it); // Remove the mesh from the map and get the next iterator
+            //world.deleteChunk(coord.x, coord.z);
+        }
+        else
+        {
+            // The chunk is within the render distance, so we keep it
+            ++it;
+        }
+    }
+
+}
