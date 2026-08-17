@@ -18,13 +18,16 @@ protected:
 };
 
 TEST_F(ChunkTest, IndexInBounds) {
-    EXPECT_EQ(getBlockIndex(0,0,0), 0);
-    EXPECT_EQ(getBlockIndex(15, 15, 15), 4095); // 16*16*16 - 1
+    EXPECT_EQ(getBlockIndex(0, 0, 0), 0);
+    EXPECT_EQ(getBlockIndex(15, 63, 15), Chunk::VOLUME - 1);
 
-    // Middle
-    EXPECT_EQ(getBlockIndex(1,0,0), 1);
-    EXPECT_EQ(getBlockIndex(0,1,0), 16);
-    EXPECT_EQ(getBlockIndex(0,0,1), 256);
+    // X changes fastest, then Y, then Z
+    EXPECT_EQ(getBlockIndex(1, 0, 0), 1);
+    EXPECT_EQ(getBlockIndex(0, 1, 0), Chunk::SIZE_X);
+    EXPECT_EQ(getBlockIndex(0, 0, 1), Chunk::SIZE_X * Chunk::SIZE_Y);
+
+    // Extra sanity checks for the higher dimension
+    EXPECT_EQ(getBlockIndex(5, 12, 3), 5 + (12 * Chunk::SIZE_X) + (3 * Chunk::SIZE_X * Chunk::SIZE_Y));
 }
 
 TEST_F(ChunkTest, IndexOutOfBounds)
