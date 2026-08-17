@@ -22,6 +22,7 @@
 #include "world.hpp"
 #include "worldGenerator.hpp"
 #include "myImgui.hpp"
+#include "mesh.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
@@ -99,7 +100,25 @@ void glfwInitialize();
 int main ()
 {
     glfwInitialize();
-    ChunkMesher::MeshData mesh;
+
+    // Create a windowed mode window and its OpenGL context
+    GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "voxelizer", nullptr, nullptr);
+    if (window == NULL)
+    {
+        std::cerr << "Failed to create GLFW window" << std::endl;
+        glfwTerminate();
+        return -1;
+    }
+    glfwMakeContextCurrent(window);
+
+    // Load OpenGL function pointers using GLAD
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    {
+        std::cerr << "Failed to initialize GLAD" << std::endl;
+        glfwTerminate();
+        return -1;
+    }
+
     glm::mat4 model = glm::mat4(1.0f);
     // Camera setup
     glm::mat4 view;
@@ -107,11 +126,12 @@ int main ()
     glm::mat4 projection;
 
     /** TODO: TEST */
+    std::unordered_map<ChunkCoord, Mesh*, ChunkCoordHash> chunkMeshes; // Map to store meshes for each chunk
     World world{};
     generateWorld(world); // Generate a 3x3 grid of chunks in the world
-    generateWorldMesh(world, mesh);
+   generateWorldMesh(world, chunkMeshes); // Generate meshes for all chunks in the world
 
-    float lightVertices[] = {
+    /*float lightVertices[] = {
         -0.5f, -0.5f, -0.5f, 
          0.5f, -0.5f, -0.5f,  
          0.5f,  0.5f, -0.5f,  
@@ -153,30 +173,11 @@ int main ()
          0.5f,  0.5f,  0.5f,  
         -0.5f,  0.5f,  0.5f,  
         -0.5f,  0.5f, -0.5f, 
-    };
+    };*/
     
     /** TEST END */
 
-    // Create a windowed mode window and its OpenGL context
-    GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "voxelizer", nullptr, nullptr);
-    if (window == NULL)
-    {
-        std::cerr << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
-        return -1;
-    }
-    glfwMakeContextCurrent(window);
-    
-    // Load OpenGL function pointers using GLAD
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-    {
-        std::cerr << "Failed to initialize GLAD" << std::endl;
-        glfwTerminate();
-        return -1;
-    }
     // ------ OpenGL Initialized -------
-
-    std::cout << "Hello, from voxelizer!\n";
 
     Shader shader("res/shaders/vertexShader.vs", "res/shaders/fragmentShader.fs");
     //Shader lightShader("res/shaders/lightSourceVertexShader.vs", "res/shaders/lightSourceFragShader.fs");
@@ -196,42 +197,8 @@ int main ()
 
     imGuiInit(window);
 
-    // Vertex data and buffer setup
-    unsigned int VBO, VAO, EBO;
-
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
-
-    // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-
-    glBufferData(GL_ARRAY_BUFFER, sizeof(ChunkMesher::Vertex) * mesh.vertices.size(), mesh.vertices.data(), GL_STATIC_DRAW);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32_t) * mesh.indices.size(), mesh.indices.data(), GL_STATIC_DRAW);
-
-    // position attributes
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(ChunkMesher::Vertex), (void*)offsetof(ChunkMesher::Vertex, x));
-    glEnableVertexAttribArray(0);
-    // color attributes
-    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(ChunkMesher::Vertex), (void*)offsetof(ChunkMesher::Vertex, color));
-    glEnableVertexAttribArray(1);
-    // normal attributes //TODO: add in generated mesh
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(ChunkMesher::Vertex), (void*)offsetof(ChunkMesher::Vertex, nx));
-    glEnableVertexAttribArray(2);
-    // texture coordinates attributes //TODO: add in generated mesh
-    glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(ChunkMesher::Vertex), (void*)offsetof(ChunkMesher::Vertex, u));
-    glEnableVertexAttribArray(3);
-    // ambient occlusion attributes
-    glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, sizeof(ChunkMesher::Vertex), (void*)offsetof(ChunkMesher::Vertex, ao));
-    glEnableVertexAttribArray(4);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0); // Unbind the VBO
-    glBindVertexArray(0); // Unbind the VAO (bind when rendering)
-
     // LIGHT SOURCE SETUP -------------
-    unsigned int lightVBO, lightVAO;
+    /*unsigned int lightVBO, lightVAO;
     glGenVertexArrays(1, &lightVAO);
     glBindVertexArray(lightVAO);
     glGenBuffers(1, &lightVBO);
@@ -239,13 +206,13 @@ int main ()
     glBufferData(GL_ARRAY_BUFFER, sizeof(lightVertices), lightVertices, GL_STATIC_DRAW);
     // Set the vertex attributes (only position data for the lamp)
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*)0);
-    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(0);*/
     // ---------------------------------
 
     // Shader initial setup
     shader.setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f)); // Set light color to white
 
-    // Texture setup
+    // Texture setup -----------
     unsigned int texture;
     glGenTextures(1, &texture);
     glActiveTexture(GL_TEXTURE0);
@@ -271,11 +238,10 @@ int main ()
     {
         std::cout << "Failed to load texture" << std::endl;
     }
-
     stbi_image_free(data); // Free the image memory after generating the texture
     // tell shader which texture unit to use
     shader.setInt("texture1", 0);
-
+    // ---------------------------------
 
     // Main render loop
     while(!glfwWindowShouldClose(window))
@@ -304,11 +270,19 @@ int main ()
         shader.setMat4("view", view);
         shader.setMat4("proj", projection);
 
+        // Bind the texture before rendering
+        glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture); // Bind the texture before rendering
-        glBindVertexArray(VAO);
-        // wireframe for debugging
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Set polygon mode
-        glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
+        
+        // Draw each chunk mesh
+        for (const auto& [coord, mesh] : chunkMeshes)
+        {
+            mesh->draw(); // Draw each chunk mesh
+        }
+
+
+
+
 
         // LIGHT SOURCE RENDERING
         /*lightShader.use();
@@ -328,6 +302,11 @@ int main ()
         imGuiRender(); // Render the ImGui interface
         glfwSwapBuffers(window);
         glfwPollEvents();
+    } // while 
+
+    for (const auto& [coord, mesh] : chunkMeshes)
+    {
+        delete mesh; // Clean up dynamically allocated meshes
     }
 
     glfwTerminate();

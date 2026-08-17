@@ -12,6 +12,7 @@
 
 #include "world.hpp"
 #include "chunkMesher.hpp"
+#include "mesh.hpp"
 
 /**
  * @brief Generates a chunk based on Perlin noise on a given world coord
@@ -30,10 +31,10 @@ void generateWorld(World& world); //TODO: camera position,
 // plnit world podle ní, generovat mesh z kazdeho chunku (z chunks mapy)
 
 /**
- * @brief Generates a mesh for the entire world based on its chunks.
+ * @brief Generates a mesh for the entire world based on its chunks and stores the meshes in a map for rendering.
  * //TODO: zmenit na generovani jen pro viditelne chunky
  * 
  * @param world 
- * @param mesh 
+ * @param chunkMeshes 
  */
-void generateWorldMesh(World& world, ChunkMesher::MeshData& mesh);
+void generateWorldMesh(World& world, std::unordered_map<ChunkCoord, Mesh*, ChunkCoordHash>& chunkMeshes);

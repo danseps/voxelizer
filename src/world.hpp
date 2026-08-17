@@ -56,7 +56,7 @@ public:
         return chunks[coord];
     }
 
-    std::unordered_map<ChunkCoord, Chunk, ChunkCoordHash> getChunkMap()
+    const std::unordered_map<ChunkCoord, Chunk, ChunkCoordHash>& getChunkMap() const
     {
         return chunks;
     }

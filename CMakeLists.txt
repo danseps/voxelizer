@@ -111,6 +111,8 @@ target_link_options(unit_tests PRIVATE ${SANITIZE_FLAGS})
 target_link_libraries(unit_tests PRIVATE 
     GTest::gtest_main 
     Threads::Threads 
+    OpenGL::GL #TODO: to tam nechcu ale nevim jak
+    glad_lib
     m
 )
 

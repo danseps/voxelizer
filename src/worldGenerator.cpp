@@ -57,16 +57,19 @@ void generateWorld(World& world)
         {
             Chunk& chunk = world.getChunk(chunkX, chunkZ);
             generateChunk(chunk, chunkX, chunkZ);
-            
         }
     }
 }
 
-void generateWorldMesh(World& world, ChunkMesher::MeshData& mesh)
+void generateWorldMesh(World& world, std::unordered_map<ChunkCoord, Mesh*, ChunkCoordHash>& chunkMeshes)
 {
     for (const auto& [coord, chunk] : world.getChunkMap())
     {
-        //TODO: generateMesh(chunk)
-        ChunkMesher::generateMesh(chunk, coord.x, coord.z, mesh);
+        // Create a new Mesh for each chunk and generate its mesh data
+        Mesh* mesh = new Mesh();
+        ChunkMesher::MeshData chunkMeshData;
+        ChunkMesher::generateMesh(chunk, coord.x, coord.z, chunkMeshData);
+        mesh->uploadData(chunkMeshData); // Upload the generated mesh data to GPU buffers
+        chunkMeshes[coord] = mesh; // Store the mesh in the map
     }
 }
