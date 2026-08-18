@@ -27,7 +27,7 @@ TEST(WorldTest, GetChunkCreatesChunkIfMissing) {
     EXPECT_TRUE(world.hasChunk(0, 0));
     EXPECT_EQ(world.getChunkMap().size(), 1);
     
-    EXPECT_EQ(getBlock(chunk, 0, 0, 0), BlockType::Air);
+    EXPECT_EQ(getBlockLocal(chunk, 0, 0, 0), BlockType::Air);
 }
 
 TEST(WorldTest, MultipleChunksStoredSafely) {

@@ -14,6 +14,7 @@
 #include "chunkMesher.hpp"
 #include "mesh.hpp"
 #include <glm/glm.hpp>
+#include <unordered_map>
 
 /**
  * @brief Generates a chunk based on Perlin noise on a given world coord

@@ -38,21 +38,21 @@ TEST_F(ChunkTest, IndexOutOfBounds)
 }
 
 TEST_F(ChunkTest, DefaultStateIsAir) {
-    EXPECT_EQ(getBlock(chunk, 8, 8, 8), BlockType::Air);
-    EXPECT_EQ(getBlock(chunk, 0, 0, 0), BlockType::Air);
+    EXPECT_EQ(getBlockLocal(chunk, 8, 8, 8), BlockType::Air);
+    EXPECT_EQ(getBlockLocal(chunk, 0, 0, 0), BlockType::Air);
 }
 
 TEST_F(ChunkTest, SetBlockChangesData) {
     setBlock(chunk, 8, 8, 8, BlockType::Dirt);
-    EXPECT_EQ(getBlock(chunk, 8, 8, 8), BlockType::Dirt);
+    EXPECT_EQ(getBlockLocal(chunk, 8, 8, 8), BlockType::Dirt);
     
-    EXPECT_EQ(getBlock(chunk, 8, 8, 9), BlockType::Air);
+    EXPECT_EQ(getBlockLocal(chunk, 8, 8, 9), BlockType::Air);
 }
 
 TEST_F(ChunkTest, OutOfBoundsGetSet) {
-    EXPECT_EQ(getBlock(chunk, 50, 50, 50), BlockType::Air);
+    EXPECT_EQ(getBlockLocal(chunk, 50, 50, 50), BlockType::Air);
     
     // ignored
     setBlock(chunk, -1, 0, 0, BlockType::Stone);
-    EXPECT_EQ(getBlock(chunk, -1, 0, 0), BlockType::Air);
+    EXPECT_EQ(getBlockLocal(chunk, -1, 0, 0), BlockType::Air);
 }

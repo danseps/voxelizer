@@ -21,7 +21,7 @@ TEST(WorldGenTest, HeightIsAlwaysWithinSafeBounds) {
     // middle of the chunk, check the height of the block at (5, ?, 5)
     int topBlockY = -1;
     for (int y = Chunk::SIZE_Y - 1; y >= 0; y--) {
-        if (getBlock(chunk, 5, y, 5) != BlockType::Air) {
+        if (getBlockLocal(chunk, 5, y, 5) != BlockType::Air) {
             topBlockY = y;
             break;
         }
@@ -41,12 +41,12 @@ TEST(WorldGenTest, ChunksConnectSeamlessly) {
     generateChunk(chunkRight, 1, 0);
 
     int heightLeft = 0;
-    while(heightLeft < Chunk::SIZE_Y && getBlock(chunkLeft, Chunk::SIZE_X - 1, heightLeft, 5) != BlockType::Air) {
+    while(heightLeft < Chunk::SIZE_Y && getBlockLocal(chunkLeft, Chunk::SIZE_X - 1, heightLeft, 5) != BlockType::Air) {
         heightLeft++;
     }
 
     int heightRight = 0;
-    while(heightRight < Chunk::SIZE_Y && getBlock(chunkRight, 0, heightRight, 5) != BlockType::Air) {
+    while(heightRight < Chunk::SIZE_Y && getBlockLocal(chunkRight, 0, heightRight, 5) != BlockType::Air) {
         heightRight++;
     }
 

@@ -10,23 +10,40 @@
  */
 #include <gtest/gtest.h>
 #include "../src/chunkMesher.hpp"
+#include "../src/world.hpp"
+#include <math.h>
 
 class ChunkMesherTest : public ::testing::Test {
 protected:
-    Chunk chunk{}; // Automaticky vynulovaný (prázdný) chunk pro každý test
+    World world{}; // Nyní potřebujeme celý svět, ne jen jeden chunk
     ChunkMesher::MeshData mesh;
+
+    // Pomocná funkce pro rychlé nastavení bloku na globálních souřadnicích
+    void setWorldBlock(int globalX, int globalY, int globalZ, BlockType type) {
+        int chunkX = static_cast<int>(std::floor(globalX / static_cast<float>(Chunk::SIZE_X)));
+        int chunkZ = static_cast<int>(std::floor(globalZ / static_cast<float>(Chunk::SIZE_Z)));
+        
+        int localX = globalX - (chunkX * Chunk::SIZE_X);
+        int localZ = globalZ - (chunkZ * Chunk::SIZE_Z);
+        
+        Chunk& chunk = world.getChunk(chunkX, chunkZ);
+        setBlock(chunk, localX, globalY, localZ, type);
+    }
 };
 
 TEST_F(ChunkMesherTest, GenerateMeshEmptyChunk) {
-    ChunkMesher::generateMesh(chunk, 0, 0, mesh);
+    const Chunk& chunk = world.getChunk(0, 0);
+    ChunkMesher::generateMesh(world, chunk, 0, 0, mesh);
 
     EXPECT_TRUE(mesh.vertices.empty());
     EXPECT_TRUE(mesh.indices.empty());
 }
 
 TEST_F(ChunkMesherTest, GenerateMeshSingleBlock) {
-    setBlock(chunk, 0, 0, 0, BlockType::Dirt);
-    ChunkMesher::generateMesh(chunk, 0, 0, mesh);
+    setWorldBlock(0, 0, 0, BlockType::Dirt);
+    
+    const Chunk& chunk = world.getChunk(0, 0);
+    ChunkMesher::generateMesh(world, chunk, 0, 0, mesh);
 
     EXPECT_FALSE(mesh.vertices.empty());
     EXPECT_FALSE(mesh.indices.empty());
@@ -34,45 +51,40 @@ TEST_F(ChunkMesherTest, GenerateMeshSingleBlock) {
     EXPECT_EQ(mesh.indices.size(), 36);  // 6 faces * 2 triangles * 3 indices
 }
 
-/*TEST_F(ChunkMesherTest, ColorCheck) {
-    setBlock(chunk, 0, 0, 0, BlockType::Grass);
-    ChunkMesher::generateMesh(chunk, 0, 0, mesh);
-
-    utils::Color expectedColor = ChunkMesher::getBlockTypeColor(BlockType::Grass);
-    ASSERT_FALSE(mesh.vertices.empty());
-    EXPECT_FLOAT_EQ(mesh.vertices[0].color.r, expectedColor.r);
-    EXPECT_FLOAT_EQ(mesh.vertices[0].color.g, expectedColor.g);
-    EXPECT_FLOAT_EQ(mesh.vertices[0].color.b, expectedColor.b);
-    EXPECT_FLOAT_EQ(mesh.vertices[0].color.a, expectedColor.a);
-}*/
-
 TEST_F(ChunkMesherTest, GenerateMeshMultipleBlocks) {
-    setBlock(chunk, 0, 0, 0, BlockType::Dirt);
-    setBlock(chunk, 1, 0, 0, BlockType::Stone);
-    ChunkMesher::generateMesh(chunk, 0, 0, mesh);
+    setWorldBlock(0, 0, 0, BlockType::Dirt);
+    setWorldBlock(1, 0, 0, BlockType::Stone);
+    
+    const Chunk& chunk = world.getChunk(0, 0);
+    ChunkMesher::generateMesh(world, chunk, 0, 0, mesh);
 
     EXPECT_FALSE(mesh.vertices.empty());
     EXPECT_FALSE(mesh.indices.empty());
-    EXPECT_EQ(mesh.vertices.size(), 4 * 10); // 10 faces * 4 vertices
-    EXPECT_EQ(mesh.indices.size(), 10 * 2 * 3);  // 10 faces * 2 triangles * 3 indices
+    EXPECT_EQ(mesh.vertices.size(), 40); // 10 faces * 4 vertices (1 stěna se skryje = Face Culling)
+    EXPECT_EQ(mesh.indices.size(), 60);  // 10 faces * 2 triangles * 3 indices
 }
 
 TEST_F(ChunkMesherTest, GenerateMeshWithAirBlocks) {
-    setBlock(chunk, 0, 0, 0, BlockType::Dirt);
-    setBlock(chunk, 1, 0, 0, BlockType::Air); // This block should not contribute to the mesh
-    ChunkMesher::generateMesh(chunk, 0, 0, mesh);
+    setWorldBlock(0, 0, 0, BlockType::Dirt);
+    setWorldBlock(1, 0, 0, BlockType::Air); // Vzduch se nesmí modelovat
+    
+    const Chunk& chunk = world.getChunk(0, 0);
+    ChunkMesher::generateMesh(world, chunk, 0, 0, mesh);
 
     EXPECT_FALSE(mesh.vertices.empty());
     EXPECT_FALSE(mesh.indices.empty());
-    EXPECT_EQ(mesh.vertices.size(), 24); // Only the Dirt block contributes to the mesh
+    EXPECT_EQ(mesh.vertices.size(), 24); // Jen ten jeden blok
     EXPECT_EQ(mesh.indices.size(), 36);
 }
 
 TEST_F(ChunkMesherTest, GeometryCoordinatesCheck)
 {
-    setBlock(chunk, 0, 0, 0, BlockType::Dirt);
-    setBlock(chunk, 15, 15, 15, BlockType::Stone); // Test the farthest corner of the chunk
-    ChunkMesher::generateMesh(chunk, 0, 0, mesh);
+    setWorldBlock(0, 0, 0, BlockType::Dirt);
+    setWorldBlock(15, 15, 15, BlockType::Stone); // Nejvzdálenější roh uvnitř chunku(0,0)
+    
+    const Chunk& chunk = world.getChunk(0, 0);
+    ChunkMesher::generateMesh(world, chunk, 0, 0, mesh);
+    
     ASSERT_FALSE(mesh.vertices.empty());
     
     // Check the first vertex coordinates
@@ -86,29 +98,11 @@ TEST_F(ChunkMesherTest, GeometryCoordinatesCheck)
     EXPECT_FLOAT_EQ(mesh.vertices[mesh.vertices.size() - 1].z, 16.0f); // z
 }
 
-TEST_F(ChunkMesherTest, GeometryCoordinatesOutOfBoundsCheck)
-{
-    setBlock(chunk, 16, 16, 16, BlockType::Stone); 
-    // 
-    ChunkMesher::generateMesh(chunk, 0, 0, mesh);
-    
-    // Silently ignore out-of-bounds blocks, so the mesh should be empty, 
-    // the chunk is not modified, and no vertices or indices should be generated.
-    EXPECT_TRUE(mesh.vertices.empty());
-    EXPECT_TRUE(mesh.indices.empty());
-    
-    EXPECT_EQ(mesh.vertices.size(), 0);
-    EXPECT_EQ(mesh.indices.size(), 0);
-}
-
-/**
- * @brief Construct a new test f object
- * 
- */
 TEST_F(ChunkMesherTest, FirstFaceIndicesAreCorrect) {
-    setBlock(chunk, 0, 0, 0, BlockType::Stone);
+    setWorldBlock(0, 0, 0, BlockType::Stone);
     
-    ChunkMesher::generateMesh(chunk, 0, 0, mesh);
+    const Chunk& chunk = world.getChunk(0, 0);
+    ChunkMesher::generateMesh(world, chunk, 0, 0, mesh);
     
     ASSERT_GE(mesh.indices.size(), 6);
     
@@ -122,46 +116,67 @@ TEST_F(ChunkMesherTest, FirstFaceIndicesAreCorrect) {
     EXPECT_EQ(mesh.indices[5], 0);
 }
 
-//TODO: Face culling test: Ensure that blocks that are 
-// completely surrounded by other blocks do not generate faces in the mesh.
-/*
-    Myšlenka: Dáme dvě kostky Hlíny těsně vedle sebe: (0,0,0) a (1,0,0).
-V současném hrubém mesheru se vygenerují 
-obě celé kostky, takže získáme 504 floatů (2 * 252).
-
-Až zapneme Face Culling, tento test upravíme tak, 
-aby očekával menší číslo (o 2 skryté stěny méně),
- čímž získáme neprůstřelný důkaz, že nám optimalizace funguje.
-*/
-
-TEST_F(ChunkMesherTest, FaceCullingTest) {
-    setBlock(chunk, 0, 0, 0, BlockType::Dirt);
-    setBlock(chunk, 1, 0, 0, BlockType::Dirt); // This block is adjacent to the first one
-
-    ChunkMesher::generateMesh(chunk, 0, 0, mesh);
-
-    // Each block has 6 faces, but the adjacent face between them should not be generated.
-    // So we expect 10 faces in total (5 for each block).
-    EXPECT_EQ(mesh.vertices.size(), 10 * 4); // 10 faces * 4 vertices
-    EXPECT_EQ(mesh.indices.size(), 10 * 6);  // 10 faces * 2 triangles * 3 indices
-}
-
 TEST_F(ChunkMesherTest, FaceCullingCompletelySurroundedBlock) {
     // 3x3x3 cube of blocks, the center block is completely surrounded
     for (int y = 0; y < 3; y++) {
         for (int z = 0; z < 3; z++) {
             for (int x = 0; x < 3; x++) {
-                setBlock(chunk, x, y, z, BlockType::Stone);
+                setWorldBlock(x, y, z, BlockType::Stone);
             }
         }
     }
 
-    ChunkMesher::generateMesh(chunk, 0, 0, mesh);
+    const Chunk& chunk = world.getChunk(0, 0);
+    ChunkMesher::generateMesh(world, chunk, 0, 0, mesh);
 
-    // Without face culling: 27 blocks * 6 faces = 162 faces (648 vertices)
-    // With face culling:
-    // The large cube has 6 outer faces. Each face consists of 3x3 = 9 small block faces.
-    // Expected result: 6 * 9 = 54 faces.
-    EXPECT_EQ(mesh.vertices.size(), 54 * 4); // 216 vertices
-    EXPECT_EQ(mesh.indices.size(), 54 * 6);  // 324 indices
+    // 3x3x3 kostka má navenek 6 velkých stěn. Každá velká stěna se skládá z 3x3 menších.
+    // 6 * 9 = 54 stěn celkem. Všechny vnitřní musí zmizet.
+    EXPECT_EQ(mesh.vertices.size(), 54 * 4); 
+    EXPECT_EQ(mesh.indices.size(), 54 * 6);  
+}
+
+// ---------------------------------------------------------
+// NOVÉ TESTY: Testování chování na hranicích chunků
+// ---------------------------------------------------------
+
+TEST_F(ChunkMesherTest, FaceCullingAtChunkBorder) {
+    // Blok na pravém kraji Chunku (0, 0) -> globální X = 15
+    setWorldBlock(15, 0, 0, BlockType::Dirt);
+    // Blok na levém kraji Chunku (1, 0) -> globální X = 16
+    setWorldBlock(16, 0, 0, BlockType::Dirt); 
+
+    // Vygenerujeme mesh POUZE pro první chunk
+    const Chunk& chunk0 = world.getChunk(0, 0);
+    ChunkMesher::generateMesh(world, chunk0, 0, 0, mesh);
+
+    // Kdyby mesher neviděl do vedlejšího chunku, vygeneroval by 6 stěn (24 vrcholů).
+    // Protože tam ale je blok z vedlejšího chunku, pravá stěna (+X) musí zmizet!
+    // Očekáváme 5 stěn -> 20 vrcholů.
+    EXPECT_EQ(mesh.vertices.size(), 20); 
+}
+
+TEST_F(ChunkMesherTest, AmbientOcclusionAtChunkBorder) {
+    // Tráva na kraji Chunku (0,0) -> globální X = 15
+    setWorldBlock(15, 0, 0, BlockType::Grass);
+    // Zastínění způsobené vyvýšeným blokem ve vedlejším chunku -> globální X = 16
+    setWorldBlock(16, 1, 0, BlockType::Dirt); 
+
+    const Chunk& chunk0 = world.getChunk(0, 0);
+    ChunkMesher::generateMesh(world, chunk0, 0, 0, mesh);
+
+    ASSERT_FALSE(mesh.vertices.empty());
+
+    bool shadowFound = false;
+    for (const auto& vertex : mesh.vertices) {
+        // Pokud je to horní stěna (normála míří nahoru) a leží na okraji u vedlejšího bloku (X=16)
+        if (vertex.ny == 1.0f && vertex.x == 16.0f) { 
+            // AO hodnota musí být menší než 1.0f (plné světlo), protože blok na X=16 stíní
+            if (vertex.ao < 1.0f) {
+                shadowFound = true;
+                break;
+            }
+        }
+    }
+    
+    EXPECT_TRUE(shadowFound) << "Ambient Occlusion nefunguje pres hranice chunku!";
 }

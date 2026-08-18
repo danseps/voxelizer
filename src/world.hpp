@@ -41,7 +41,7 @@ struct ChunkCoordHash
 };
 
  class World
- {
+{
 private:
     std::unordered_map<ChunkCoord, Chunk, ChunkCoordHash> chunks; // Map of chunk coordinates to chunks
 

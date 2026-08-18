@@ -12,6 +12,7 @@
 #pragma once
 
 #include <cstdint>
+#include <cmath>
 
 enum class BlockType : uint8_t
 {
@@ -77,7 +78,7 @@ inline void setBlock(Chunk& chunk, int x, int y, int z, BlockType blockType)
 }
 
 /**
- * @brief Get the Block object type
+ * @brief Get the block type from a chunk based on its local 3D coordinates
  * 
  * @param chunk 
  * @param x 
@@ -85,7 +86,7 @@ inline void setBlock(Chunk& chunk, int x, int y, int z, BlockType blockType)
  * @param z 
  * @return BlockType 
  */
-inline BlockType getBlock(const Chunk& chunk, int x, int y, int z)
+inline BlockType getBlockLocal(const Chunk& chunk, int x, int y, int z)
 {
     int index = getBlockIndex(x, y, z);
     if (index != -1) {

@@ -1,5 +1,5 @@
 DONE: testy
-chunky kolem kamery - radius
+DONE:chunky kolem kamery - radius
 perlin noise na biomy
 kurzor uprostred jak v mc
 + raycasting a interakce
@@ -11,8 +11,10 @@ DONE(basic): lighting
 frustrum culling
 DONE(podpora ne lepsi): textury
 LOD scales with distance
-chunky jako jednotlive ne jako jeden velky world a kazdy svuj vao vbo (optimalizace změn)
-Objektově orientovaný Mesher: Převést to z "funkce" na třídu Mesh, která drží svůj VAO/VBO.
+DONE:chunky jako jednotlive ne jako jeden velky world a kazdy svuj vao vbo (optimalizace změn)
+dynamic lighting, night/day, sun/moon visible 
+pocasi, mlha, ...
+DONE: chunky musi vedet o vedlejsich chuncich pri ptaní na issolid atd
 
 3D noise - caves
  or biome-based structure

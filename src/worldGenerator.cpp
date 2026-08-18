@@ -68,7 +68,7 @@ void generateWorldMesh(World& world, std::unordered_map<ChunkCoord, Mesh*, Chunk
         // Create a new Mesh for each chunk and generate its mesh data
         Mesh* mesh = new Mesh();
         ChunkMesher::MeshData chunkMeshData;
-        ChunkMesher::generateMesh(chunk, coord.x, coord.z, chunkMeshData);
+        ChunkMesher::generateMesh(world, chunk, coord.x, coord.z, chunkMeshData);
         mesh->uploadData(chunkMeshData); // Upload the generated mesh data to GPU buffers
         chunkMeshes[coord] = mesh; // Store the mesh in the map
     }
@@ -86,26 +86,42 @@ void updateChunks(World& world, std::unordered_map<ChunkCoord, Mesh*, ChunkCoord
     };
 
     // Determine which chunks should be present based on the camera position and render distance
+    
+    // ---------------------------------------------------------
+    // FÁZE 1: Generování dat (RAM) + Límec (renderDistance + 1)
+    // ---------------------------------------------------------
+    for (int x = myChunkCoord.x - (renderDistance + 1); x <= myChunkCoord.x + (renderDistance + 1); x++)
+    {
+        for (int z = myChunkCoord.y - (renderDistance + 1); z <= myChunkCoord.y + (renderDistance + 1); z++)
+        {
+            if (!world.hasChunk(x, z))
+            {
+                // Generate the chunk purely to RAM
+                Chunk& newChunk = world.getChunk(x, z);
+                generateChunk(newChunk, x, z);
+            }
+        }
+    }
+
+    // ---------------------------------------------------------
+    // FÁZE 2: Generování 3D sítě (VRAM) (pouze renderDistance)
+    // ---------------------------------------------------------
     for (int x = myChunkCoord.x - renderDistance; x <= myChunkCoord.x + renderDistance; x++)
     {
         for (int z = myChunkCoord.y - renderDistance; z <= myChunkCoord.y + renderDistance; z++)
         {
             ChunkCoord coord{x, z};
 
+            // Pokud ještě nemáme Mesh pro tento chunk
             if(chunkMeshes.find(coord) == chunkMeshes.end())
             {
-                if (!world.hasChunk(x, z))
-                {
-                    // Generate the chunk to RAM if it doesn't exist
-                    Chunk& newChunk = world.getChunk(x, z);
-                    generateChunk(newChunk, x, z);
-                }
-
-                // Generate mesh for the new chunk
-                Chunk& newChunk = world.getChunk(x, z);
+                Chunk& chunk = world.getChunk(x, z);
                 Mesh* mesh = new Mesh();
                 ChunkMesher::MeshData chunkMeshData;
-                ChunkMesher::generateMesh(newChunk, x, z, chunkMeshData);
+                
+                // Mesher se teď může bezpečně podívat za hranice, protože Fáze 1 tam už data připravila
+                ChunkMesher::generateMesh(world, chunk, x, z, chunkMeshData);
+                
                 mesh->uploadData(chunkMeshData);
                 chunkMeshes[coord] = mesh;
             }
